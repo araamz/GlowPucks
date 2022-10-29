@@ -1,0 +1,19 @@
+@media screen and (min-width: 600px) {
+
+    .widget {
+        background: black; 
+        display: flex;
+
+        color: white !important;
+        font-size: 0.5rem;
+
+        height: 25px !important;
+        align-items: center;
+        width: min-content;
+
+        gap: 5px;
+        border-radius: 4px;
+        padding: 0 8px;
+    }
+
+}

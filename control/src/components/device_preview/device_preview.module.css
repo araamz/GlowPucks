@@ -1,50 +1,42 @@
 @media screen and (min-width: 600px) {
 
   .device_preview {
-    display: grid;
-    background: #f0f0f0;
-    width: 200px;
-    height: 200px;
-    border-radius: 10px;
-    grid-template-columns: 1fr;
-    grid-template-rows: min-content 1fr min-content;
-    padding: 13px;
+    background: white;
+    height: 180px;
+    box-shadow: 0 2px 10px 1px lightgray;
+    border-radius: 4px;
+    padding: 20px;
   }
+  .device_preview_container {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .label_container {
+
+  }
+  .graphic_container {
+
+  }
+  .widgets_container {
+    display: flex;
+    flex-direction: row;
+    gap: 8px;
+  }
+
   .label {
-    font-size: 1rem;
     font-weight: 700;
-    text-align: center;
-    color: #8F8F8F;
+    font-size: 1rem;
   }
   .graphic {
+    width: 80px;
+    height: 80px;
     background: red;
-    height: 110px;
-    width: 110px;
     border-radius: 100%;
     box-shadow: 0 0 15px 1px red;
-    justify-self: center;
-    align-self: center;
-    display: flex;
-  }
-  .graphic > p {
-    height: min-content;
-    width: min-content;
-    place-self: center;
-    margin: 0 auto;
-    font-size: 30px;
-    font-weight: 700;
-    color: black;
-    opacity: 70%;
-  }
-  .metadata {
-    display: flex;
-    justify-content: center;
-    gap: 22px;
-    align-self: flex-end;
-  }
-  .metadata > p {
-    font-weight: 700;
-    color: #8BC34A;
   }
   
 }

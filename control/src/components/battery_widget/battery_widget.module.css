@@ -1,0 +1,17 @@
+@media screen and (min-width: 600px) {
+
+    .battery_widget {
+        gap: 5px;
+    }
+    .battery_text {
+
+    }
+    .battery_icon {
+        line-height: 0;
+    }
+
+}
+
+@media screen and (min-width: 900px) {
+
+}

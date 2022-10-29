@@ -1,0 +1,29 @@
+@media screen and (min-width: 600px) {
+    .active_icon {
+        line-height: 0;
+    }
+    .active_icon > span {
+        font-size: 0.8rem;
+    }
+
+    .active {
+        font-variation-settings:
+        'FILL' 1,
+        'wght' 400,
+        'GRAD' 0,
+        'opsz' 100
+    }
+
+    .inactive {
+        font-variation-settings:
+        'FILL' 0,
+        'wght' 400,
+        'GRAD' 0,
+        'opsz' 100
+    }
+
+}
+
+@media screen and (min-width: 900px) {
+
+}
