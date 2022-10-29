@@ -1,4 +1,5 @@
 import DevicePreview from "../../components/device_preview/device_preview";
+import GroupPreview from "../../components/group_preview/group_preview";
 
 import home_page_styles from "./home.module.css";
 
@@ -18,7 +19,7 @@ export default function Home() {
                     <DevicePreview id={2}/>
                     <DevicePreview id={2}/>
                     <DevicePreview id={2}/>
-                    
+
 
                 </div>
             </div>
@@ -26,8 +27,9 @@ export default function Home() {
                 <h2>
                     Device Groups
                 </h2>
-                <div>
-
+                <div className={home_page_styles.groups_container}>
+                    <GroupPreview />
+                    <GroupPreview />
                 </div>
             </div>
         </div>
