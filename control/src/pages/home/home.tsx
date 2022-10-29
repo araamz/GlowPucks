@@ -11,12 +11,15 @@ export default function Home() {
                     Connected Devices
                 </h2>
                 <div className={home_page_styles.devices_container}>
-                    <DevicePreview id={0} label={"Puck 1"} battery_level={20} light_active={false} />
-                    <DevicePreview id={0} label={"Puck 1"} battery_level={20} light_active={false} />
-                    <DevicePreview id={0} label={"Puck 1"} battery_level={20} light_active={false} />
-                    <DevicePreview id={0} label={"Puck 1"} battery_level={20} light_active={false} />
-                    <DevicePreview id={0} label={"Puck 1"} battery_level={20} light_active={false} />
-                    <DevicePreview id={0} label={"Puck 1"} battery_level={20} light_active={false} />
+                    <DevicePreview id={0}/>
+                    <DevicePreview id={1}/>
+                    <DevicePreview id={2}/>
+                    <DevicePreview id={2}/>
+                    <DevicePreview id={2}/>
+                    <DevicePreview id={2}/>
+                    <DevicePreview id={2}/>
+                    
+
                 </div>
             </div>
             <div>

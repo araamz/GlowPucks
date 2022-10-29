@@ -1,30 +1,43 @@
 import BatteryWidget from "../battery_widget/battery_widget";
+import Graphic from "../graphic/graphic";
 import LightActiveWidget from "../light_active_widget/light_active_widget";
+import SettingsWidget from "../settings_widget/settings_widget";
 import device_preview_styles from "./device_preview.module.css"; 
 
 type device_preview_props = {
     id: any;
-    label: String;
-    battery_level: Number;
-    light_active: boolean;
 }
 
+// Will grab from API for battery_level, light_active, and label - Only ID will be required
+
 export default function DevicePreview(props: device_preview_props) {
+
+    const click_handler = () => {
+        console.log("Click from device " + props.id)
+        
+    }
+
+    const test_object = {
+        label: "Puck 1",
+        battery_level: 23,
+        light_active: true
+    }
 
     return (
         <div className={device_preview_styles.device_preview}>
             <div className={device_preview_styles.device_preview_container}>
                 <div className={device_preview_styles.label_container}>
                     <p className={device_preview_styles.label}>
-                        { props.label }
+                        { test_object.label }
                     </p>
                 </div>
                 <div className={device_preview_styles.graphic_container}>
-                    <div className={device_preview_styles.graphic} />
+                    <Graphic color="#FF9800" active={true} />
                 </div>
                 <div className={device_preview_styles.widgets_container}>
-                    <BatteryWidget level={props.battery_level} />
-                    <LightActiveWidget active={props.light_active}/>
+                    <BatteryWidget level={test_object.battery_level} />
+                    <LightActiveWidget active={test_object.light_active}/>
+                    <SettingsWidget onClick={click_handler} className={device_preview_styles.settings_widget} />
                 </div>
             </div>
         </div>

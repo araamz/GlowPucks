@@ -1,0 +1,24 @@
+@media screen and (min-width: 600px) {
+
+    .button_widget {
+        color: black !important;
+        border: 1px black solid;
+        padding: 2px;
+        background: none;
+        border-radius: 100%;
+
+        display: flex;
+
+        appearance: none;
+        outline: none;
+    }
+
+    .button_widget:hover {
+        color: white !important;
+        border-color: black;
+        background: black;
+        transition: 0.2s;
+        box-shadow: 0 1px 10px 1px gray;
+    }
+
+}
