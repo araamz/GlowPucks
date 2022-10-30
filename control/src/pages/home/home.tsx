@@ -28,8 +28,7 @@ export default function Home() {
                     Device Groups
                 </h2>
                 <div className={home_page_styles.groups_container}>
-                    <GroupPreview />
-                    <GroupPreview />
+                    <GroupPreview id={4} />
                 </div>
             </div>
         </div>

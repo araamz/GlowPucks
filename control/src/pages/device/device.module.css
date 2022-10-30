@@ -1,0 +1,11 @@
+@media screen and (min-width: 600px) {
+    .device_page {
+        display: grid;
+        grid-template-columns: 200px 1fr;
+        gap: 20px;
+    }
+
+    .device_configuration {
+
+    }
+}

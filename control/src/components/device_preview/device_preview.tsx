@@ -1,3 +1,4 @@
+import { Navigate, useNavigate } from "react-router-dom";
 import BatteryWidget from "../battery_widget/battery_widget";
 import Graphic from "../graphic/graphic";
 import LightActiveWidget from "../light_active_widget/light_active_widget";
@@ -12,8 +13,11 @@ type device_preview_props = {
 
 export default function DevicePreview(props: device_preview_props) {
 
+    const navigate = useNavigate()
+
     const click_handler = () => {
-        console.log("Click from device " + props.id)
+
+        navigate(`/devices/${props.id}`)
         
     }
 
@@ -32,7 +36,7 @@ export default function DevicePreview(props: device_preview_props) {
                     </p>
                 </div>
                 <div className={device_preview_styles.graphic_container}>
-                    <Graphic color="#FF9800" active={true} />
+                    <Graphic color="#9CCC65" active={false} />
                 </div>
                 <div className={device_preview_styles.widgets_container}>
                     <BatteryWidget level={test_object.battery_level} />

@@ -10,7 +10,7 @@
     .groups_container {
         display: grid;
         gap: 18px;
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: repeat(3, 1fr);
     }
 
 }

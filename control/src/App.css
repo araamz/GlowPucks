@@ -4,5 +4,50 @@
     margin: 40px auto 40px auto;
     max-width: 1200px;
   }
+  nav {
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+  }
+  .control_panel_navlink_active {
+    padding: 0;
+    text-decoration: none;
+    background: black;
+    padding: 5px 10px;
+    border-radius: 4px;
+    color: white !important;
+    font-size: 0.8rem;
+    border: 2px solid black;
+  }
 
+  .control_panel_navlink_unactive {
+    padding: 0;
+    text-decoration: none;
+    background: none;
+    padding: 5px 10px;
+    border-radius: 4px;
+    color: rgb(182, 182, 182) !important;
+    font-size: 0.8rem;
+    border: 2px solid rgb(182, 182, 182);
+  }
+  .device_configuration_label {
+    background: black !important;
+    padding: 0;
+    text-decoration: none;
+    background: none;
+    padding: 5px 10px;
+    border-radius: 4px;
+    color: white;
+    font-size: 0.8rem;
+  }
+  .group_configuration_label {
+    background: black;
+    padding: 0;
+    text-decoration: none;
+    background: none;
+    padding: 5px 10px;
+    border-radius: 4px;
+    color: white;
+    font-size: 0.8rem;
+  }
 }

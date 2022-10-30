@@ -10,7 +10,7 @@ type button_widget_props = {
 export default function ButtonWidget(props: button_widget_props) {
 
     return (
-        <button onClick={props.onClick} className={`${button_widget_styles.button_widget} ${props.className}`}>
+        <button onClick={props.onClick} className={`${button_widget_styles.button_widget} ${props.className} `}>
             { props.children }
         </button>
     )
