@@ -16,15 +16,18 @@ export default function Device() {
     return (
         <div className={device_page_styles.device_page}>
             <div className={device_page_styles.device_configuration}>
-                <DevicePreview id={4} />
+                <DevicePreview id={4} settings_widget_disable />
                 <div>
-                    <p>
-                        Testing
-                    </p>
+                    <div>
+                        <p>
+
+                        </p>
+                    </div>
                 </div>
             </div>
             <div>
                 <div className={device_page_styles.page_header}>
+
                 </div>
             </div>
         </div>

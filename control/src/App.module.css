@@ -1,5 +1,5 @@
 @media screen and (min-width: 600px) {
-  .App {
+  .app {
     width: 90%;
     margin: 40px auto 40px auto;
     max-width: 1200px;
@@ -7,30 +7,34 @@
   nav {
     display: flex;
     flex-direction: row;
-    gap: 10px;
+    gap: 16px;
+    margin-bottom: 40px;
   }
-  .control_panel_navlink_active {
+  .control_panel_navlink {
     padding: 0;
     text-decoration: none;
-    background: black;
     padding: 5px 10px;
     border-radius: 4px;
-    color: white !important;
     font-size: 0.8rem;
-    border: 2px solid black;
+    border: 2px solid black; 
+  }
+  .control_panel_navlink:hover {
+    color: white !important;
+    border-color: black;
+    background: black;
+    transition: 0.2s;
+    box-shadow: 0 1px 10px 1px gray;
+  }
+  .control_panel_navlink_active {
+    background: black;
+    color: white !important;
   }
 
   .control_panel_navlink_unactive {
-    padding: 0;
-    text-decoration: none;
-    background: none;
-    padding: 5px 10px;
-    border-radius: 4px;
     color: rgb(182, 182, 182) !important;
-    font-size: 0.8rem;
     border: 2px solid rgb(182, 182, 182);
   }
-  .device_configuration_label {
+  .page_label {
     background: black !important;
     padding: 0;
     text-decoration: none;
@@ -39,15 +43,9 @@
     border-radius: 4px;
     color: white;
     font-size: 0.8rem;
-  }
-  .group_configuration_label {
-    background: black;
-    padding: 0;
-    text-decoration: none;
-    background: none;
-    padding: 5px 10px;
-    border-radius: 4px;
-    color: white;
-    font-size: 0.8rem;
+
+    display: flex;
+    align-items: center;
+    justify-items: center;
   }
 }

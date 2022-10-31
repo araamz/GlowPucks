@@ -7,6 +7,9 @@ import device_preview_styles from "./device_preview.module.css";
 
 type device_preview_props = {
     id: any;
+    battery_widget_disable?: boolean;
+    light_active_widget_disable?: boolean;
+    settings_widget_disable?: boolean;
 }
 
 // Will grab from API for battery_level, light_active, and label - Only ID will be required
@@ -39,9 +42,9 @@ export default function DevicePreview(props: device_preview_props) {
                     <Graphic color="#9CCC65" active={false} />
                 </div>
                 <div className={device_preview_styles.widgets_container}>
-                    <BatteryWidget level={test_object.battery_level} />
-                    <LightActiveWidget active={test_object.light_active}/>
-                    <SettingsWidget onClick={click_handler} className={device_preview_styles.settings_widget} />
+                    { !props.battery_widget_disable ? <BatteryWidget level={test_object.battery_level} /> : null }
+                    { !props.light_active_widget_disable ? <LightActiveWidget active={test_object.light_active}/> : null }
+                    { !props.settings_widget_disable ? <SettingsWidget onClick={click_handler} className={device_preview_styles.settings_widget} /> : null }
                 </div>
             </div>
         </div>

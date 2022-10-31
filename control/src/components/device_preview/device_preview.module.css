@@ -19,8 +19,8 @@
     display: flex;
     flex-direction: row;
     gap: 8px;
-    align-items: flex-start;
     width: 100%;
+    justify-content: center;
   }
   .settings_widget {
     margin-left: auto;
