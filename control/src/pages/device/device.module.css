@@ -1,11 +1,69 @@
 @media screen and (min-width: 600px) {
     .device_page {
         display: grid;
-        grid-template-columns: 200px 1fr 1fr;
+        grid-template-columns: 250px 600px;
         gap: 20px;
+    }
+    .device_page h5 {
+        color: gray;
+    }
+
+    .device_attributes {
+        display: grid;
+        background: white;
+        grid-template-columns: 1fr 1fr;
+        grid-template-rows: repeat(5, auto);
+        gap: 10px;
+        padding: 20px;
+        border-radius: 4px;
+        box-shadow: 0 3px 5px 1px lightgray;
+    }
+    .device_attributes > div {
+        padding: 8px;
+    }
+    .device_attributes > div > p {
+        font-size: 0.4rem;
+        font-weight: 700;
+        color: gray;
+    }
+    .device_attributes > div {
+        border: solid 2px rgb(234, 234, 234);
+        border-radius: 4px;
+    }
+    .graphic_attribute {
+        border: none !important;
+        grid-column-start: 1;
+        grid-column-end: 3;
+        display: flex;
+        place-content: center;
+
+    }
+    .lower_text {
+        font-size: 0.4rem;
+        grid-column-start: 1;
+        grid-column-end: 3;
+        text-align: center;
+    }
+    .attribute_value {
+        font-size: 0.8rem;
+    }
+    .uuid_attribute {
+        grid-column-start: 1;
+        grid-column-end: 3;
+    }
+    .label_attribute {
+        grid-column-start: 1;
+        grid-column-end: 3;
     }
 
     .device_configuration {
+    }
+
+    .graphic {
         
+    }
+    .color_box {
+        width: 30px;
+        height: 30px;
     }
 }

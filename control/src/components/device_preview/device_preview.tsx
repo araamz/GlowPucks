@@ -7,6 +7,10 @@ import device_preview_styles from "./device_preview.module.css";
 
 type device_preview_props = {
     id: any;
+    // label
+    // brightness
+    // active
+    // color
     battery_widget_disable?: boolean;
     light_active_widget_disable?: boolean;
     settings_widget_disable?: boolean;

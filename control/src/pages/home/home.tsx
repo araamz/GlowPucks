@@ -6,7 +6,7 @@ import home_page_styles from "./home.module.css";
 export default function Home() {
 
     return (
-        <div>
+        <div className={home_page_styles.home}>
             <div className={home_page_styles.connected_devices}>
                 <h2>
                     Connected Devices

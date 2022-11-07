@@ -78,7 +78,10 @@ button:focus-visible {
   font-family: 'Open Sans', sans-serif;
 }
 body {
-  background: #dfdfdf;
+  background: #ebebeb;
+}
+h1,h2,h3,h4,h5,h6 {
+  margin: 0;
 }
 p {
   margin: 0;

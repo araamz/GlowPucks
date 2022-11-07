@@ -1,6 +1,13 @@
 @media screen and (min-width: 600px) {
 
-
+    .home {
+        display: flex;
+        flex-direction: column;
+        gap: 30px;
+    }
+    .home h2 {
+        margin-bottom: 30px;
+    }
     .devices_container {
         display: grid;
         grid-template-columns: repeat(auto-fill, 200px);
