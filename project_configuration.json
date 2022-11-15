@@ -1,0 +1,40 @@
+{
+    "color_options": [
+
+    ],
+    "devices": [
+        {
+            "label": "Glowpuck 1",
+            "uuid": "e593521d-6d30-4c5a-8842-14cd0ee35251",
+            "brightness": 100,
+            "active": false,
+            "color": "red",
+            "mode": 0
+        },
+        {
+            "label": "Glowpuck 2",
+            "uuid": "d70814f2-c098-43e3-a6bb-61d831b396c8",
+            "brightness": 100,
+            "active": true,
+            "color": {
+                "primary_color": "blue",
+                "secondary_color": "green"
+            },
+            "mode": 2
+        }
+    ],
+    "groups": [
+        {
+            "label": "Artemisia/Virginia",
+            "uuid": "91ed4377-0ca9-49d3-9582-3090a93f4654",
+            "devices": [
+                "e593521d-6d30-4c5a-8842-14cd0ee35251",
+                "d70814f2-c098-43e3-a6bb-61d831b396c8"
+            ],
+            "brightness": 100,
+            "active": false,
+            "color": "red",
+            "mode": 1            
+        }
+    ]
+}
