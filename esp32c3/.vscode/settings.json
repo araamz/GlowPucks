@@ -1,0 +1,8 @@
+{
+    "idf.port": "/dev/cu.usbserial-8340",
+    "idf.adapterTargetName": "esp32c3",
+    "idf.openOcdConfigs": [
+        "board/esp32c3-bridge.cfg"
+    ],
+    "idf.flashType": "UART"
+}
