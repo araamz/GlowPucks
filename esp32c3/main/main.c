@@ -18,7 +18,7 @@
 
 // Initialize RGB (for TCP connected/disconnected check)
 // Initialize TCP == C:SETUP/OPERATION
-// Initialize MQTT 
+// Initialize MQTT == C:SETUP/OPERATION
 // Initialize UART == C:SETUP/OPERATION
 // * Make Interrupt for: protocol receive of config update
 // * Make Interrupt for: protocol receive of status update [type=status car_count]  ** FIRST ACT **
