@@ -14,7 +14,6 @@
 #include "lwip/err.h"
 #include "lwip/sys.h"
 #include "mqtt_client.h"
-#include "led_strip.h"
 
 // Initialize RGB (for TCP connected/disconnected check)
 // Initialize TCP == C:SETUP/OPERATION
@@ -31,8 +30,8 @@
 //#define WIFI_SSID ("mqtt")
 //#define WIFI_PASSWORD ("v9Qad9frLg")
 
-#define WIFI_SSID ("Cyrus")
-#define WIFI_PASSWORD ("pnq5u3s597")
+#define WIFI_SSID ("Glowpuck Broker")
+#define WIFI_PASSWORD ("F2022_EE426")
 #define MAXIMUM_RETRY  (15)
 #define WIFI_CONNECTED_BIT BIT0
 #define WIFI_FAIL_BIT      BIT1
@@ -54,11 +53,12 @@
 #define ESP_WIFI_SCAN_AUTH_MODE_THRESHOLD WIFI_AUTH_WAPI_PSK
 #endif
 
-
-#define LED_PIN (GPIO_NUM_6)
-static struct led_color_t led_strip_buf_1[1];
-static struct led_color_t led_strip_buf_2[1];
-void initalize_rgb_led();
+#define WIFI_STATUS_LED (GPIO_NUM_1)
+#define MQTT_STATUS_LED (GPIO_NUM_0)
+#define TCP_ERROR_STATUS_LED (GPIO_NUM_2)
+void initalize_status_led();
+void enable_status_led(int gpip_number);
+void disable_status_led(int gpip_number);
 
 static EventGroupHandle_t wifi_event_group;
 static const char *WIFI_TAG = "WIFI_TAG";
@@ -67,7 +67,7 @@ void initalize_nvs_wifi();
 void initialize_wifi();
 static void wifi_event(void* arg, esp_event_base_t event_base, int32_t event_id, void* event_data);
 
-#define MQTT_BROKER_HOST ("192.168.1.75")
+#define MQTT_BROKER_HOST ("10.42.0.1")
 #define MQTT_BROKER_PORT (25565)
 static const char *MQTT_TAG = "MQTT_TAG";
 static void initialize_mqtt();
@@ -84,12 +84,18 @@ static const char *UART_TAG = "UART_TAG";
 void initialize_uart();
 static void uart_event(void *pvParameters);
 
-void initalize_rgb_led() {
+void initalize_status_led() {
 
-    pStrip_a = led_strip_init(CONFIG_BLINK_LED_RMT_CHANNEL, BLINK_GPIO, 1);
-    pStrip_a->clear(pStrip_a, 50);
+    gpio_set_direction(TCP_ERROR_STATUS_LED, GPIO_MODE_OUTPUT);
+    gpio_set_direction(WIFI_STATUS_LED, GPIO_MODE_OUTPUT);
+    gpio_set_direction(MQTT_STATUS_LED, GPIO_MODE_OUTPUT);
+
 }
-
+void enable_status_led(int gpip_number) {
+    gpio_set_level(gpip_number, 1);
+}
+void disable_status_led(int gpip_number) {
+    gpio_set_level(gpip_number, 0);
 }
 
 void initalize_nvs_wifi() {
@@ -152,9 +158,13 @@ static void wifi_event(void* arg, esp_event_base_t event_base, int32_t event_id,
             esp_wifi_connect();
             wifi_failure_retry_count++;
         } else {
+            enable_status_led(TCP_ERROR_STATUS_LED);
+            disable_status_led(WIFI_STATUS_LED);
             xEventGroupSetBits(wifi_event_group, WIFI_FAIL_BIT);
         }
     } else if (event_base == IP_EVENT && event_id == IP_EVENT_STA_GOT_IP) {
+        enable_status_led(WIFI_STATUS_LED);
+        disable_status_led(TCP_ERROR_STATUS_LED);
         ip_event_got_ip_t* event = (ip_event_got_ip_t*) event_data;
         ESP_LOGI(WIFI_TAG, "Got IP:" IPSTR, IP2STR(&event -> ip_info.ip));
         wifi_failure_retry_count = 0;
@@ -184,10 +194,14 @@ static void mqtt_event(void *arg, esp_event_base_t event_base, int32_t event_id,
     switch ((esp_mqtt_event_id_t) event_id) {
 
         case MQTT_EVENT_CONNECTED:
+            enable_status_led(MQTT_STATUS_LED);
+            disable_status_led(TCP_ERROR_STATUS_LED);
             ESP_LOGI(MQTT_TAG, "MQTT Connected");
             break;
 
         case MQTT_EVENT_DISCONNECTED:
+            enable_status_led(TCP_ERROR_STATUS_LED);
+            disable_status_led(MQTT_STATUS_LED);
             ESP_LOGI(MQTT_TAG, "MQTT Disconnected");
             break;
 
@@ -274,7 +288,7 @@ static void uart_event(void *pvParameters) {
 
 void app_main(void) {
 
-    initalize_rgb_led();
+    initalize_status_led();
 
     initalize_nvs_wifi();
 
@@ -286,7 +300,5 @@ void app_main(void) {
     xTaskCreate(uart_event, "uart_event", 2048, NULL, 12, NULL);
 
     esp_log_level_set(UART_TAG, ESP_LOG_INFO);
-bool led_strip_set_pixel_color(struct led_strip_t *led_strip, uint32_t pixel_num, struct led_color_t *color);
-bool led_strip_set_pixel_rgb(struct led_strip_t *led_strip, uint32_t pixel_num, uint8_t red, uint8_t green, uint8_t blue);
-
+    
 }
