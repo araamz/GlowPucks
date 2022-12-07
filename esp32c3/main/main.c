@@ -84,6 +84,18 @@ static const char *UART_TAG = "UART_TAG";
 void initialize_uart();
 static void uart_event(void *pvParameters);
 
+enum modes { still, flash, alternate };
+static int brightness = 40;
+static bool active = false;
+static enum modes mode = flash;
+static int r1 = 255;
+static int g1 = 0;
+static int b1 = 0;
+static int r2 = 0;
+static int g2 = 255;
+static int b2 = 0; 
+static int car_count = 0;
+
 void initalize_status_led() {
 
     gpio_set_direction(TCP_ERROR_STATUS_LED, GPIO_MODE_OUTPUT);
@@ -197,6 +209,9 @@ static void mqtt_event(void *arg, esp_event_base_t event_base, int32_t event_id,
             enable_status_led(MQTT_STATUS_LED);
             disable_status_led(TCP_ERROR_STATUS_LED);
             ESP_LOGI(MQTT_TAG, "MQTT Connected");
+
+            char string[] = "config\tGP1\t100\t1\t0\t200\t0\t0\tNULL\tNULL\tNULL\t0\t0";
+            uart_write_bytes(UART, (const char*) string, sizeof(string));
             break;
 
         case MQTT_EVENT_DISCONNECTED:
