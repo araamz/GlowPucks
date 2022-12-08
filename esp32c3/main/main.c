@@ -210,7 +210,7 @@ static void mqtt_event(void *arg, esp_event_base_t event_base, int32_t event_id,
             disable_status_led(TCP_ERROR_STATUS_LED);
             ESP_LOGI(MQTT_TAG, "MQTT Connected");
 
-            char string[] = "config\tGP1\t100\t1\t0\t200\t0\t0\tNULL\tNULL\tNULL\t0\t0";
+            char string[] = "0\tGP1\t100\t1\t1\t0\t100\t50\t-1\t-1\t-1\t0\tNULL\t0\t0";
             uart_write_bytes(UART, (const char*) string, sizeof(string));
             break;
 
