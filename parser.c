@@ -1,3 +1,4 @@
+// Online C compiler to run C program online
 #include <stdio.h>
 #include <string.h>
 
@@ -77,6 +78,34 @@ void parse_protocol_string(char* protocol_message) {
       
       if (token_index == R1_INDEX) {
           parsed_r1 = atoi(token);
+      }
+      
+      if (token_index == G1_INDEX) {
+          parsed_g1 = atoi(token);
+      }
+      
+      if (token_index == B1_INDEX) {
+          parsed_b1 = atoi(token);
+      }
+      
+      if (token_index == R2_INDEX) {
+          parsed_r2 = atoi(token);
+      }
+     
+      if (token_index == G2_INDEX) {
+          parsed_g2 = atoi(token);
+      }
+      
+      if (token_index == B2_INDEX) {
+          parsed_b2 = atoi(token);
+      }
+      
+      if (token_index == GROUP_ENABLE_INDEX) {
+          parsed_b2 = atoi(token);
+      }
+      
+      if (token_index == GROUP_ENABLE_INDEX) {
+          parsed_b2 = atoi(token);
       }
       
       token = strtok(NULL, delimiter);
