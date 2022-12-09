@@ -30,6 +30,19 @@
 //#define WIFI_SSID ("mqtt")
 //#define WIFI_PASSWORD ("v9Qad9frLg")
 
+enum modes { still, flash, alternate };
+static int brightness = 40;
+static bool active = false;
+static enum modes mode = flash;
+static int r1 = 255;
+static int g1 = 0;
+static int b1 = 0;
+static int r2 = 0;
+static int g2 = 255;
+static int b2 = 0; 
+static int car_count = 0;
+static const char uuid[];
+
 #define WIFI_SSID ("Glowpuck Broker")
 #define WIFI_PASSWORD ("F2022_EE426")
 #define MAXIMUM_RETRY  (15)
@@ -52,6 +65,31 @@
 #elif CONFIG_ESP_WIFI_AUTH_WAPI_PSK
 #define ESP_WIFI_SCAN_AUTH_MODE_THRESHOLD WIFI_AUTH_WAPI_PSK
 #endif
+
+#define TYPE_INDEX 0
+#define LABEL_INDEX 1
+#define BRIGHTNESS_INDEX 2  
+#define ACTIVE_INDEX 3      
+#define MODE_INDEX 4        
+#define R1_INDEX 5          
+#define G1_INDEX 6          
+#define B1_INDEX 7          
+#define R2_INDEX 8          
+#define G2_INDEX 9          
+#define B2_INDEX 10       
+#define GROUP_ENABLE_INDEX 11
+#define GROUP_TARGET_INDEX 12  
+#define CAR_CLEAR_INDEX 13
+#define CAR_COUNT_INDEX 14
+#define MESSAGE_FLAGS_COUNT 15
+#define CONFIG_MESSAGE_TYPE 0
+#define STATUS_MESSAGE_TYPE 1
+#define BOOTSTRAP_MESSAGE_TYPE 2
+#define STRING_HOLE_FILLER ("NULL")
+#define INTEGER_HOLE_FILLER (-1)
+#define MESSAGE_DELIMITER ("\t")
+
+//void parse_protocol_message( protocol_message, int &parsed_type, string &parsed_label, int &parsed_brightness, int &parsed_active, int &parsed_mode, int &parsed_r1, int &parsed_g1, int &parsed_b1, int &parsed_r2, int &parsed_g2, int &parsed_b2, int &parsed_group_enable, string &parsed_group_target, int &parsed_car_clear, int &parsed_car_count);
 
 #define WIFI_STATUS_LED (GPIO_NUM_1)
 #define MQTT_STATUS_LED (GPIO_NUM_0)
@@ -83,18 +121,6 @@ static QueueHandle_t uart1_queue;
 static const char *UART_TAG = "UART_TAG";
 void initialize_uart();
 static void uart_event(void *pvParameters);
-
-enum modes { still, flash, alternate };
-static int brightness = 40;
-static bool active = false;
-static enum modes mode = flash;
-static int r1 = 255;
-static int g1 = 0;
-static int b1 = 0;
-static int r2 = 0;
-static int g2 = 255;
-static int b2 = 0; 
-static int car_count = 0;
 
 void initalize_status_led() {
 
