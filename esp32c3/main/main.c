@@ -56,10 +56,10 @@ enum communication
 
 static const char uuid[SEGMENT_MESSAGE_BYTE_SIZE] = "bf421b2b-27a8-4c2f-b958-30d7a9f12bfd";
 static char label[SEGMENT_MESSAGE_BYTE_SIZE] = {STRING_HOLE_FILLER};
-static int brightness = 0;
-static int active = 0;
+static int brightness = 100;
+static int active = 1;
 static enum modes mode = flash;
-static int r1 = 0;
+static int r1 = 100;
 static int g1 = 0;
 static int b1 = 0;
 static int r2 = 0;
@@ -149,7 +149,6 @@ static void uart_event(void *pvParameters);
 void parse_protocol_message(char *protocol_message, int *parsed_type, char **parsed_label, int *parsed_brightness, int *parsed_active, int *parsed_mode, int *parsed_r1, int *parsed_g1, int *parsed_b1, int *parsed_r2, int *parsed_g2, int *parsed_b2, int *parsed_group_enable, char **parsed_group_target, int *parsed_car_clear, int *parsed_car_count)
 {
 
-   //ESP_LOGI("PROTOCOL_TAG", "Parsing Message: %s.", protocol_message);
     char protocol_message_char_buffer[FULL_MESSAGE_BYTE_SIZE];
     strcpy(protocol_message_char_buffer, protocol_message);
     char *tok = strtok(protocol_message_char_buffer, MESSAGE_DELIMITER);
@@ -252,6 +251,46 @@ void parse_protocol_message(char *protocol_message, int *parsed_type, char **par
 }
 void write_esp32c3_status_protocol_message(char *status_protocol_message)
 {
+
+    int message_type = STATUS_MESSAGE_TYPE;
+    char *message_label = (char *)malloc(SEGMENT_MESSAGE_BYTE_SIZE * sizeof(char));
+    strlcpy(message_label, label, SEGMENT_MESSAGE_BYTE_SIZE);
+    int message_brightness = brightness;
+    int message_active = active;
+    int message_mode = mode;
+    int message_r1 = r1;
+    int message_g1 = g1;
+    int message_b1 = b1;
+    int message_r2;
+    int message_g2;
+    int message_b2;
+    int message_group_enable = group_enable;
+    char *message_group_target = (char *)malloc(SEGMENT_MESSAGE_BYTE_SIZE * sizeof(char));
+    strlcpy(message_group_target, STRING_HOLE_FILLER, SEGMENT_MESSAGE_BYTE_SIZE);
+    int message_car_clear = car_clear;
+    int message_car_count = INTEGER_HOLE_FILLER;
+
+    if (mode == alternate)
+    {
+        message_r2 = r2;
+        message_g2 = g2;
+        message_b2 = b2;
+    }
+    else
+    {
+        message_r2 = INTEGER_HOLE_FILLER;
+        message_g2 = INTEGER_HOLE_FILLER;
+        message_b2 = INTEGER_HOLE_FILLER;
+    }
+
+    if (group_enable == 1)
+    {
+        strlcpy(message_group_target, group_target, SEGMENT_MESSAGE_BYTE_SIZE);
+    }
+
+    sprintf(status_protocol_message, "%d\t%s\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%s\t%d\t%d\0", message_type, message_label, message_brightness, message_active, message_mode, message_r1, message_g1, message_b1, message_r2, message_g2, message_b2, message_group_enable, message_group_target, message_car_clear, message_car_count);
+
+    ESP_LOGI(PROTOCOL_TAG, "Written Protocol Status Message: %s.", status_protocol_message);
 }
 void write_esp32c3_config_protocol_message(char *config_protocol_message)
 {
@@ -292,7 +331,7 @@ void write_esp32c3_config_protocol_message(char *config_protocol_message)
         strlcpy(message_group_target, group_target, SEGMENT_MESSAGE_BYTE_SIZE);
     }
 
-    sprintf(config_protocol_message, "%d\t%s\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%s\t%d\t%d", message_type, message_label, message_brightness, message_active, message_mode, message_r1, message_g1, message_b1, message_r2, message_g2, message_b2, message_group_enable, message_group_target, message_car_clear, message_car_count);
+    sprintf(config_protocol_message, "%d\t%s\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%s\t%d\t%d\0", message_type, message_label, message_brightness, message_active, message_mode, message_r1, message_g1, message_b1, message_r2, message_g2, message_b2, message_group_enable, message_group_target, message_car_clear, message_car_count);
 
     ESP_LOGI(PROTOCOL_TAG, "Written Protocol Config Message: %s.", config_protocol_message);
 }
@@ -317,7 +356,8 @@ int execute_protocol_message(char *protocol_message, enum communication communic
 
     parse_protocol_message(protocol_message, &parsed_type, &parsed_label, &parsed_brightness, &parsed_active, &parsed_mode, &parsed_r1, &parsed_g1, &parsed_b1, &parsed_r2, &parsed_g2, &parsed_b2, &parsed_group_enable, &parsed_group_target, &parsed_car_clear, &parsed_car_count);
 
-    if ((parsed_type != CONFIG_MESSAGE_TYPE) && (parsed_type != STATUS_MESSAGE_TYPE) && (parsed_type != BOOTSTRAP_MESSAGE_TYPE)) {
+    if ((parsed_type != CONFIG_MESSAGE_TYPE) && (parsed_type != STATUS_MESSAGE_TYPE) && (parsed_type != BOOTSTRAP_MESSAGE_TYPE))
+    {
         return -1;
     }
 
@@ -327,20 +367,12 @@ int execute_protocol_message(char *protocol_message, enum communication communic
         ESP_LOGI(PROTOCOL_TAG, "[Transport %d] Received Message Type %d.", parsed_type, parsed_type);
         switch (parsed_type)
         {
-        case CONFIG_MESSAGE_TYPE:
-
-            // update_car_count(parsed_car_count);
-            car_clear = 0;
-
-            break;
         case STATUS_MESSAGE_TYPE:
-
-            // update_car_count(parsed_car_count);
+            update_car_count(parsed_car_count);
             break;
 
         case BOOTSTRAP_MESSAGE_TYPE:
-
-            bootstrap_uno();
+            update_uno_config();
             break;
         }
     }
@@ -372,19 +404,27 @@ void bootstrap_uno()
 {
     ESP_LOGI(DEVICE_TAG, "Bootstrapping Uno.");
     char *config_protocol_message = (char *)malloc(FULL_MESSAGE_BYTE_SIZE * sizeof(char));
+
     write_esp32c3_config_protocol_message(config_protocol_message);
-    uart_write_bytes(UART, (char *)config_protocol_message, FULL_MESSAGE_BYTE_SIZE);
+
+    uart_write_bytes(UART, (char *)config_protocol_message, strlen(config_protocol_message));
+
+    free(config_protocol_message);
 }
 void update_car_count(int new_car_count)
 {
     car_count = new_car_count;
-    ESP_LOGI("CAR_COUNT TAG", "New car count: %d", car_count);
+    ESP_LOGI(DEVICE_TAG, "Updated car_count: %d", car_count);
 }
 void update_uno_config()
 {
-    // char config_protocol_message[1024];
-    // write_esp32c3_config_protocol_message(&config_protocol_message);
-    // uart_write_bytes(UART, (const char *)config_protocol_message, sizeof(config_protocol_message));
+    ESP_LOGI(DEVICE_TAG, "Upating Uno Config.");
+    char *config_protocol_message = (char *)malloc(FULL_MESSAGE_BYTE_SIZE * sizeof(char));
+    write_esp32c3_config_protocol_message(config_protocol_message);
+
+    uart_write_bytes(UART, (const char *)config_protocol_message, strlen(config_protocol_message));
+    car_clear = 0;
+    free(config_protocol_message);
 }
 
 void initalize_status_led()
@@ -518,11 +558,8 @@ static void mqtt_event(void *arg, esp_event_base_t event_base, int32_t event_id,
         enable_status_led(MQTT_STATUS_LED);
         disable_status_led(TCP_ERROR_STATUS_LED);
 
-        // char string[] = "0\tGP1\t100\t1\t1\t200\t100\t0\t0\t0\t200\t0\tNULL\t0\t0";
-        // uart_write_bytes(UART, (const char *)string, sizeof(string));
-
-        car_count = 0;
         ESP_LOGI(MQTT_TAG, "%s", uuid);
+        ESP_LOGI(MQTT_TAG, "car_count %d", car_count);
         break;
 
     case MQTT_EVENT_DISCONNECTED:
@@ -617,7 +654,6 @@ static void uart_event(void *pvParameters)
 
 void app_main(void)
 {
-
     initalize_status_led();
 
     initalize_nvs_wifi();

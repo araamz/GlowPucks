@@ -394,8 +394,7 @@ String write_uno_status_protocol_message()
       String message_segment = String(car_count);
       protocol_message = protocol_message + message_segment;
     }
-    
-  }
+    }
 
   return protocol_message;
 }
@@ -447,7 +446,6 @@ void wait_for_uno_bootstrapping()
 
     String bootstrap_message = write_uno_bootstrap_protocol_message().c_str();
     Serial.print(bootstrap_message);
-    delay(2000);
 
     if (Serial.available())
     {
@@ -455,6 +453,8 @@ void wait_for_uno_bootstrapping()
       String protocol_message = Serial.readString();
       execute_protocol_message(protocol_message);
     }
+
+    delay(2000);
   }
 }
 
@@ -475,7 +475,6 @@ void update_uno_config(int new_brightness, int new_active, enum modes new_mode, 
 
   if (new_car_clear == 1)
   {
-
     eeprom_clear_clear_count();
   }
 }
@@ -509,8 +508,8 @@ void eeprom_increase_car_count()
 }
 void eeprom_clear_clear_count()
 {
-
-  EEPROM.write(EEPROM_MEMORY_ADDRESS, 0);
+  car_count = 0;
+  EEPROM.write(EEPROM_MEMORY_ADDRESS, car_count);
 }
 
 void initialize_pir_motion_sensor_status()
