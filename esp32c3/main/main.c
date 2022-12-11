@@ -56,10 +56,10 @@ enum communication
 
 static const char uuid[SEGMENT_MESSAGE_BYTE_SIZE] = "bf421b2b-27a8-4c2f-b958-30d7a9f12bfd";
 static char label[SEGMENT_MESSAGE_BYTE_SIZE] = {STRING_HOLE_FILLER};
-static int brightness = 100;
-static int active = 1;
+static int brightness = 0;
+static int active = 0;
 static enum modes mode = flash;
-static int r1 = 100;
+static int r1 = 0;
 static int g1 = 0;
 static int b1 = 0;
 static int r2 = 0;
@@ -268,7 +268,7 @@ void write_esp32c3_status_protocol_message(char *status_protocol_message)
     char *message_group_target = (char *)malloc(SEGMENT_MESSAGE_BYTE_SIZE * sizeof(char));
     strlcpy(message_group_target, STRING_HOLE_FILLER, SEGMENT_MESSAGE_BYTE_SIZE);
     int message_car_clear = car_clear;
-    int message_car_count = INTEGER_HOLE_FILLER;
+    int message_car_count = car_count;
 
     if (mode == alternate)
     {
@@ -364,7 +364,7 @@ int execute_protocol_message(char *protocol_message, enum communication communic
     if (communication_mode == uart)
     {
         ESP_LOGI(PROTOCOL_TAG, "[Transport %d] Executing Message: %s.", communication_mode, protocol_message);
-        ESP_LOGI(PROTOCOL_TAG, "[Transport %d] Received Message Type %d.", parsed_type, parsed_type);
+        ESP_LOGI(PROTOCOL_TAG, "[Transport %d] Received Message Type %d.", communication_mode, parsed_type);
         switch (parsed_type)
         {
         case STATUS_MESSAGE_TYPE:
@@ -374,10 +374,29 @@ int execute_protocol_message(char *protocol_message, enum communication communic
         case BOOTSTRAP_MESSAGE_TYPE:
             update_uno_config();
             break;
+
+        default:
+            ESP_LOGE(PROTOCOL_TAG, "[Transport %d] Received Message Type %d is not applicable.", communication_mode, parsed_type);
+            return -1;
+        }
+    }
+    else if (communication_mode == mqtt)
+    {
+        switch (parsed_type)
+        {
+        case CONFIG_MESSAGE_TYPE:
+            update_esp32c3_config(parsed_label, parsed_brightness, parsed_active, parsed_mode, parsed_r1, parsed_g1, parsed_b1, parsed_r2, parsed_g2, parsed_b2, parsed_group_enable, parsed_group_target, parsed_car_clear);
+            update_uno_config();
+            break;
+        default:
+            ESP_LOGE(PROTOCOL_TAG, "[Transport %d] Received Message Type %d is not applicable.", communication_mode, parsed_type);
+            return -1;
         }
     }
     else
     {
+        ESP_LOGE(PROTOCOL_TAG, "Can't recognize transport selected.");
+        return -1;
     }
 
     return 0;
@@ -418,10 +437,9 @@ void update_car_count(int new_car_count)
 }
 void update_uno_config()
 {
-    ESP_LOGI(DEVICE_TAG, "Upating Uno Config.");
     char *config_protocol_message = (char *)malloc(FULL_MESSAGE_BYTE_SIZE * sizeof(char));
     write_esp32c3_config_protocol_message(config_protocol_message);
-
+    ESP_LOGI(DEVICE_TAG, "Upating Uno Config with config: %s.", config_protocol_message);
     uart_write_bytes(UART, (const char *)config_protocol_message, strlen(config_protocol_message));
     car_clear = 0;
     free(config_protocol_message);
@@ -550,16 +568,37 @@ static void mqtt_event(void *arg, esp_event_base_t event_base, int32_t event_id,
     esp_mqtt_client_handle_t client = event->client;
     int message_id;
 
+    char *esp32c3_device_config_url_prefix = "esp32c3/device/config";
+    size_t esp32c3_device_config_subscribe_url_size = strlen(esp32c3_device_config_url_prefix) + strlen(uuid);
+    char *esp32c3_device_config_subscribe_url = (char *)malloc(esp32c3_device_config_subscribe_url_size * sizeof(char));
+    sprintf(esp32c3_device_config_subscribe_url, "%s/%s", esp32c3_device_config_url_prefix, uuid);
+
+    char *esp32c3_device_status_url_prefix = "esp32c3/device/status";
+    size_t esp32c3_device_status_subscribe_url_size = strlen(esp32c3_device_status_url_prefix) + strlen(uuid);
+    char *esp32c3_device_status_subscribe_url = (char *)malloc(esp32c3_device_status_subscribe_url_size * sizeof(char));
+    sprintf(esp32c3_device_status_subscribe_url, "%s/%s", esp32c3_device_status_url_prefix, uuid);
+
+    char *backend_device_status_url_prefix = "backend/device/status";
+    size_t backend_device_status_subscribe_url_size = strlen(backend_device_status_url_prefix) + strlen(uuid);
+    char *backend_device_status_subscribe_url = (char *)malloc(backend_device_status_subscribe_url_size * sizeof(char));
+    sprintf(backend_device_status_subscribe_url, "%s/%s", backend_device_status_url_prefix, uuid);
+
     switch ((esp_mqtt_event_id_t)event_id)
     {
 
     case MQTT_EVENT_CONNECTED:
+
         ESP_LOGI(MQTT_TAG, "MQTT Connected.");
         enable_status_led(MQTT_STATUS_LED);
         disable_status_led(TCP_ERROR_STATUS_LED);
 
-        ESP_LOGI(MQTT_TAG, "%s", uuid);
-        ESP_LOGI(MQTT_TAG, "car_count %d", car_count);
+        // uno <- esp32c3 <- backend (config - subscribe)
+        esp_mqtt_client_subscribe(client, esp32c3_device_config_subscribe_url, 0);
+        ESP_LOGI(MQTT_TAG, "Subscribing to %s.", esp32c3_device_config_subscribe_url);
+        // uno <- esp32c3 <- backend (status - subscribe)
+        esp_mqtt_client_subscribe(client, esp32c3_device_status_subscribe_url, 0);
+        ESP_LOGI(MQTT_TAG, "Subscribing to %s.", esp32c3_device_status_subscribe_url);
+
         break;
 
     case MQTT_EVENT_DISCONNECTED:
@@ -582,6 +621,43 @@ static void mqtt_event(void *arg, esp_event_base_t event_base, int32_t event_id,
 
     case MQTT_EVENT_DATA:
 
+        ESP_LOGI(MQTT_TAG, "Receiving message.");
+        char *received_topic = (char *)malloc(FULL_MESSAGE_BYTE_SIZE * sizeof(char));
+        char *received_data = (char *)malloc(FULL_MESSAGE_BYTE_SIZE * sizeof(char));
+        sprintf(received_topic, "%.*s\0\r\n", event->topic_len, event->topic);
+        sprintf(received_data, "%.*s\0\r\n", event->data_len, event->data);
+
+        ESP_LOGI(MQTT_TAG, "Topic: %s (%d bytes) - Received Message: %s (%d bytes)", received_topic, strlen(received_topic), received_data, strlen(received_data));
+
+        if (strcmp(received_topic, esp32c3_device_config_subscribe_url) == 0)
+        {
+
+            execute_protocol_message(received_data, mqtt);
+        }
+        else if (strcmp(received_topic, esp32c3_device_status_subscribe_url) == 0)
+        {
+
+            // send a message to arduino to get latest car_count
+            char *uno_status_protocol_message = (char *)malloc(FULL_MESSAGE_BYTE_SIZE * sizeof(char));
+            write_esp32c3_status_protocol_message(uno_status_protocol_message);
+            uart_write_bytes(UART, (char *)uno_status_protocol_message, strlen(uno_status_protocol_message));
+            free(uno_status_protocol_message);
+            // delay 2 secconds
+            vTaskDelay(2000 / portTICK_RATE_MS);
+            // write status message
+            // update write function to properly send all data if avaialbe
+            char *backend_status_protocol_message = (char *)malloc(FULL_MESSAGE_BYTE_SIZE * sizeof(char));
+            write_esp32c3_status_protocol_message(backend_status_protocol_message);
+            ESP_LOGI(MQTT_TAG, "Replying to topic: %s - reply: %s", received_topic, backend_status_protocol_message);
+            esp_mqtt_client_publish(client, backend_device_status_subscribe_url, backend_status_protocol_message, strlen(backend_status_protocol_message), 0, 0);
+            free(backend_status_protocol_message);
+        }
+
+        // char *topic = (char *)malloc((int) event->topic_len * sizeof(char));
+        // sprintf(topic, "%.*s\r\n", event->topic_len, (char *)event->topic);
+
+        // char * message[event->data_len] = sprintf("%.*s\r\n", event->topic_len, (char*) event->topic)
+        // ESP_LOGI(MQTT_TAG, "Topic: %s - Received Message: %s", topic, message);
         break;
 
     case MQTT_EVENT_ERROR:
