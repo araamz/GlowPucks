@@ -1,0 +1,34 @@
+{
+    "devices": [
+        {
+            "uuid": "bf421b2b-27a8-4c2f-b958-30d7a9f12bfd",
+            "configuration": {
+                "label": "GP1",
+                "brightness": 100,
+                "active": 1,
+                "mode": 0,
+                "r1": 255,
+                "g1": 0,
+                "b1": 0,
+                "r2": -1,
+                "g2": -1,
+                "b2": -1,
+                "group_enable": 0,
+                "group_target": "NULL",
+                "car_clear": 0,
+                "car_count": -1
+            }
+        }
+    ],
+    "groups": [
+        {
+            "label": "Artemisia Way/Virginia Street",
+            "uuid": "55e25e17-e013-4d4c-8cfb-d560168df210",
+            "targets": [
+                "bf421b2b-27a8-4c2f-b958-30d7a9f12bfd",
+                "abb82bbd-7853-4984-964d-6b3d1007759a"
+            ]
+        }
+    ]
+
+}

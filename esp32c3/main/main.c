@@ -93,23 +93,14 @@ static int car_count = 0;
 #define ESP_WIFI_SCAN_AUTH_MODE_THRESHOLD WIFI_AUTH_WAPI_PSK
 #endif
 
-// 2 Read Events
-// -> (MQTT) esp32c3 Config Update [1]
-// -> (UART) uno Bootstrap [2]
-
-// 2 Write Events
-// -> (MQTT) backend Status [3]
-// -> (UART) uno Config [4]
-
 static const char *PROTOCOL_TAG = "PROTOCOL_TAG";
 void parse_protocol_message(char *protocol_message, int *parsed_type, char **parsed_label, int *parsed_brightness, int *parsed_active, int *parsed_mode, int *parsed_r1, int *parsed_g1, int *parsed_b1, int *parsed_r2, int *parsed_g2, int *parsed_b2, int *parsed_group_enable, char **parsed_group_target, int *parsed_car_clear, int *parsed_car_count);
-void write_esp32c3_status_protocol_message(char *status_protocol_message); // [3]
-void write_esp32c3_config_protocol_message(char *config_protocol_message); // [4] - Be sure to reset car_clear flag after transmission
+void write_esp32c3_status_protocol_message(char *status_protocol_message);
+void write_esp32c3_config_protocol_message(char *config_protocol_message);
 int execute_protocol_message(char *protocol_message, enum communication communication_mode);
-// Remember when status gets sent to arduino, reset car_clear back to 0
 
 static const char *DEVICE_TAG = "DEVICE_TAG";
-void update_esp32c3_config(char *new_label, int new_brightness, int new_active, int new_mode, int new_r1, int new_g1, int new_b1, int new_r2, int new_g2, int new_b2, int new_group_enable, char *new_group_target, int new_car_clear); // [1]
+void update_esp32c3_config(char *new_label, int new_brightness, int new_active, int new_mode, int new_r1, int new_g1, int new_b1, int new_r2, int new_g2, int new_b2, int new_group_enable, char *new_group_target, int new_car_clear); 
 void bootstrap_uno();
 void update_car_count(int new_car_count);
 void update_uno_config();
@@ -131,6 +122,9 @@ static void wifi_event(void *arg, esp_event_base_t event_base, int32_t event_id,
 
 #define MQTT_BROKER_HOST ("10.42.0.1")
 #define MQTT_BROKER_PORT (25565)
+#define ESP32C3_DEVICE_CONFIG_TOPIC ("esp32c3/device/config")
+#define ESP32C3_DEVICE_STATUS_TOPIC ("esp32c3/device/status")
+#define BACKEND_DEVICE_STATUS_TOPIC ("backend/device/status")
 static const char *MQTT_TAG = "MQTT_TAG";
 static void initialize_mqtt();
 static void mqtt_event(void *arg, esp_event_base_t event_base, int32_t event_id, void *event_data);
@@ -566,19 +560,18 @@ static void mqtt_event(void *arg, esp_event_base_t event_base, int32_t event_id,
     ESP_LOGD(MQTT_TAG, "Seeing new event on stack.");
     esp_mqtt_event_handle_t event = event_data;
     esp_mqtt_client_handle_t client = event->client;
-    int message_id;
 
-    char *esp32c3_device_config_url_prefix = "esp32c3/device/config";
+    char *esp32c3_device_config_url_prefix = ESP32C3_DEVICE_CONFIG_TOPIC;
     size_t esp32c3_device_config_subscribe_url_size = strlen(esp32c3_device_config_url_prefix) + strlen(uuid);
     char *esp32c3_device_config_subscribe_url = (char *)malloc(esp32c3_device_config_subscribe_url_size * sizeof(char));
     sprintf(esp32c3_device_config_subscribe_url, "%s/%s", esp32c3_device_config_url_prefix, uuid);
 
-    char *esp32c3_device_status_url_prefix = "esp32c3/device/status";
+    char *esp32c3_device_status_url_prefix = ESP32C3_DEVICE_STATUS_TOPIC;
     size_t esp32c3_device_status_subscribe_url_size = strlen(esp32c3_device_status_url_prefix) + strlen(uuid);
     char *esp32c3_device_status_subscribe_url = (char *)malloc(esp32c3_device_status_subscribe_url_size * sizeof(char));
     sprintf(esp32c3_device_status_subscribe_url, "%s/%s", esp32c3_device_status_url_prefix, uuid);
 
-    char *backend_device_status_url_prefix = "backend/device/status";
+    char *backend_device_status_url_prefix = BACKEND_DEVICE_STATUS_TOPIC;
     size_t backend_device_status_subscribe_url_size = strlen(backend_device_status_url_prefix) + strlen(uuid);
     char *backend_device_status_subscribe_url = (char *)malloc(backend_device_status_subscribe_url_size * sizeof(char));
     sprintf(backend_device_status_subscribe_url, "%s/%s", backend_device_status_url_prefix, uuid);
@@ -592,10 +585,9 @@ static void mqtt_event(void *arg, esp_event_base_t event_base, int32_t event_id,
         enable_status_led(MQTT_STATUS_LED);
         disable_status_led(TCP_ERROR_STATUS_LED);
 
-        // uno <- esp32c3 <- backend (config - subscribe)
         esp_mqtt_client_subscribe(client, esp32c3_device_config_subscribe_url, 0);
         ESP_LOGI(MQTT_TAG, "Subscribing to %s.", esp32c3_device_config_subscribe_url);
-        // uno <- esp32c3 <- backend (status - subscribe)
+
         esp_mqtt_client_subscribe(client, esp32c3_device_status_subscribe_url, 0);
         ESP_LOGI(MQTT_TAG, "Subscribing to %s.", esp32c3_device_status_subscribe_url);
 
@@ -637,15 +629,13 @@ static void mqtt_event(void *arg, esp_event_base_t event_base, int32_t event_id,
         else if (strcmp(received_topic, esp32c3_device_status_subscribe_url) == 0)
         {
 
-            // send a message to arduino to get latest car_count
             char *uno_status_protocol_message = (char *)malloc(FULL_MESSAGE_BYTE_SIZE * sizeof(char));
             write_esp32c3_status_protocol_message(uno_status_protocol_message);
             uart_write_bytes(UART, (char *)uno_status_protocol_message, strlen(uno_status_protocol_message));
             free(uno_status_protocol_message);
-            // delay 2 secconds
+
             vTaskDelay(2000 / portTICK_RATE_MS);
-            // write status message
-            // update write function to properly send all data if avaialbe
+
             char *backend_status_protocol_message = (char *)malloc(FULL_MESSAGE_BYTE_SIZE * sizeof(char));
             write_esp32c3_status_protocol_message(backend_status_protocol_message);
             ESP_LOGI(MQTT_TAG, "Replying to topic: %s - reply: %s", received_topic, backend_status_protocol_message);
@@ -653,11 +643,6 @@ static void mqtt_event(void *arg, esp_event_base_t event_base, int32_t event_id,
             free(backend_status_protocol_message);
         }
 
-        // char *topic = (char *)malloc((int) event->topic_len * sizeof(char));
-        // sprintf(topic, "%.*s\r\n", event->topic_len, (char *)event->topic);
-
-        // char * message[event->data_len] = sprintf("%.*s\r\n", event->topic_len, (char*) event->topic)
-        // ESP_LOGI(MQTT_TAG, "Topic: %s - Received Message: %s", topic, message);
         break;
 
     case MQTT_EVENT_ERROR:
