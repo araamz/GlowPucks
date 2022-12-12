@@ -400,15 +400,7 @@ def load_config(file: str):
 
     return device_count 
 
-
-def initialize_mqtt():
-
-    for uuid in glowpuck_uuids:
-
-        topic = f'{BACKEND_DEVICE_STATUS_TOPIC}/{uuid}'
-        mqtt.subscribe(topic)
-
-    return
+load_config(CONFIG_FILE)
 
 api = Flask(__name__)
 api.config['MQTT_BROKER_URL'] =  MQTT_BROKER_HOST
@@ -416,9 +408,58 @@ api.config['MQTT_BROKER_PORT'] = MQTT_BROKER_PORT
 api.config['MQTT_TLS_ENABLED'] = False
 mqtt = Mqtt(app = api)
 
-load_config(CONFIG_FILE)
-initialize_mqtt()
+@api.route('{ESP32C3_DEVICE_CONFIG_TOPIC}/{uuid}', methods=['GET'])
+def update_esp32c3_device_config(uuid):
+    
+    device_config = request.get_json()
+    label = device_config.get('label')
+    brightness = device_config.get('brightness')
+    active = device_config.get('active')
+    mode = device_config.get('mode')
+    r1 = device_config.get('r1')
+    g1 = device_config.get('g1')
+    b1 = device_config.get('b1')
+    r2 = device_config.get('r2')
+    g2 = device_config.get('g2')
+    b2 = device_config.get('b2')
+    group_enable = device_config.get('group_enable')
+    group_target = device_config.get('group_target')
+    car_clear = device_config.get('car_clear')
 
+    publish_configuration_update(
+        uuid = uuid,
+        label = label,
+        brightness = brightness,
+        active = active,
+        mode = mode,
+        r1 = r1,
+        g1 = g1,
+        b1 = b1,
+        r2 = r2,
+        g2 = g2,
+        b2 = b2,
+        group_enable = group_enable,
+        group_target = group_target,
+        car_clear = car_clear,
+    )
+
+    return 201
+
+@api.route('{ESP32C3_DEVICE_STATUS_TOPIC}/{uuid}', methods=['GET'])
+def request_esp32c3_device_status(uuid):
+    
+    publish_status_request(uuid)
+
+    return 201
+
+@mqtt.on_connect()
+def initialize_mqtt():
+
+    for uuid in glowpuck_uuids:
+
+        topic = f'{BACKEND_DEVICE_STATUS_TOPIC}/{uuid}'
+        mqtt.subscribe(topic)
+        
 @mqtt.on_message()
 def handle_messages(client, userdata, message):
     print('Received message on topic {}: {}'
