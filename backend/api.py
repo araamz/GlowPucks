@@ -408,7 +408,7 @@ api.config['MQTT_BROKER_PORT'] = MQTT_BROKER_PORT
 api.config['MQTT_TLS_ENABLED'] = False
 mqtt = Mqtt(app = api)
 
-@api.route('{ESP32C3_DEVICE_CONFIG_TOPIC}/{uuid}', methods=['GET'])
+@api.route('/{ESP32C3_DEVICE_CONFIG_TOPIC}/{uuid}', methods=['GET'])
 def update_esp32c3_device_config(uuid):
     
     device_config = request.get_json()
@@ -445,7 +445,7 @@ def update_esp32c3_device_config(uuid):
 
     return 201
 
-@api.route('{ESP32C3_DEVICE_STATUS_TOPIC}/{uuid}', methods=['GET'])
+@api.route('/{ESP32C3_DEVICE_STATUS_TOPIC}/{uuid}', methods=['GET'])
 def request_esp32c3_device_status(uuid):
     
     publish_status_request(uuid)
