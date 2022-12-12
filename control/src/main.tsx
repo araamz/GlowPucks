@@ -24,11 +24,11 @@ const router = createBrowserRouter([
         element: <Home />
       },
       {
-        path: "devices/:device_id",
+        path: "devices/:device_uuid",
         element: <Device />
       },
       {
-        path: "groups/:group_id",
+        path: "groups/:group_uuid",
         element: <Group />
       }
     ]

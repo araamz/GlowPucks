@@ -5,24 +5,18 @@ import DevicePreview from "../../components/device_preview/device_preview";
 import ButtonWidget from "../../components/button_widget/button_widget";
 import Graphic from "../../components/graphic/graphic";
 import { useEffect, useState } from "react";
-import LabelField from "../../components/label_field/label_field";
 import Widget from "../../components/widget/widget";
 
 enum modes {
-    none = 1,
-    flash = 2,
-    alternate = 3
+    still = 0,
+    flash = 1,
+    alternate = 2
+}
+enum protocol_message_type {
+    config = 0,
+    status = 1
 }
 
-type device = {
-    label: string;
-    uuid: string;
-    brightness: number;
-    color: string;
-    active: boolean;
-    mode: modes;
-
-}
 
 const colors = [
     { color: "#f39c12" },
@@ -35,55 +29,87 @@ const colors = [
 
 export default function Device() {
 
-    const [active, set_active] = useState<boolean>(true)
-    const [mode, set_mode] = useState<modes>(modes.none)
+    let { device_uuid } = useParams();
 
-    const [device_information, set_device_information] = useState<device>({
-        label: "Glowpuck 1",
-        uuid: "bbd549ca-5e44-11ed-9b6a-0242ac120002",
-        brightness: 0,
-        color: "none",
-        active: false,
-        mode: modes.none
-    })
-    const [device_configuration, set_device_configuration] = useState<device>({
-        label: "",
-        uuid: "",
-        brightness: 0,
-        color: "none",
-        active: false,
-        mode: modes.none
-    })
+    const [label, set_label] = useState<String>()
+    const [brightness, set_brightness] = useState<Number>()
+    const [active, set_active] = useState<Number>()
+    const [mode, set_mode] = useState<modes>()
+    const [r1, set_r1] = useState<Number>()
+    const [g1, set_g1] = useState<Number>()
+    const [b1, set_b1] = useState<Number>()
+    const [r2, set_r2] = useState<Number>()
+    const [g2, set_g2] = useState<Number>()
+    const [b2, set_b2] = useState<Number>()
+    const [group_enable, set_group_enable] = useState<Number>()
+    const [group_target, set_group_target] = useState<String>()
+    const [car_count, set_car_count] = useState<Number>()
 
-    const handleColor = (event: any) => {
-        let color = event.target.value
+    const create_protocol_message = (type: protocol_message_type, car_clear: Number) => {
 
-        console.log(color)
+        if (car_clear == undefined) {
+            car_clear = 0;
+        }
+
+        let protocol_message;
+
+        if (type == protocol_message_type.config) {
+
+            let protocol_message = `${protocol_message_type.config}\t${label}\t${brightness}\t${active}\t${mode}\t${r1}\t${g1}\t${b1}\t${r2}\t${g2}\t${b2}\t${group_enable}\t${group_target}\t${car_clear}\t${-1}`;
+
+        } else if (type == protocol_message_type.status) {
+
+            let protocol_message = `${protocol_message_type.status}\t${label}\t${brightness}\t${active}\t${mode}\t${r1}\t${g1}\t${b1}\t${r2}\t${g2}\t${b2}\t${group_enable}\t${group_target}\t${car_clear}\t${-1}`;
+
+        }
+
+        return protocol_message
+
+    }
+
+    const parse_protocol_status_message = (message: String) => {
+
+
+
+    }   
+
+    const request_status_message = () => {
+
+    }
+    const transmit_config_message = () => {
+
     }
 
     useEffect(() => {
-        console.log(device_configuration)
-    }, [device_configuration])
 
-    let { device_id } = useParams()
-
-    const handleActive = () => {
-
-        if (active) {
-            set_active(false)
-        } else {
-            set_active(true)
+        if (mode !== 2) {
+            set_r2(-1);
+            set_g2(-1);
+            set_b2(-1);
         }
 
-    }
+    }, [mode, set_r2, set_g2, set_b2])
 
-    const handleMode = (event: any) => {
-        console.log(event.target.value)
-        set_mode(Number(event.target.value))
+    useEffect(() => {
 
-    }
+        if (group_enable !== 1) {
+            set_group_target("NULL")
+        } 
+
+    }, [group_enable, set_group_target])
+
+    useEffect(() => {
+        console.log(device_uuid)
+    })
+
 
     return (
+
+        <div>
+
+        </div>
+
+        /*
         <div className={device_page_styles.device_page}>
             <div className={device_page_styles.device_information}>
                 <h5>Device Information</h5>
@@ -119,7 +145,7 @@ export default function Device() {
                     </div>
                     <div className={device_page_styles.color_attribute}>
                         <p>
-                            Color
+                            Primary Color
                         </p>
                         <div>   
                             { device_information?.color }
@@ -232,7 +258,7 @@ export default function Device() {
                     <button>Update Configuration</button>
                 </div>
             </div>
-        </div>
+        </div>*/
     )
 
 }

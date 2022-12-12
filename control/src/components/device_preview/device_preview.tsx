@@ -6,7 +6,7 @@ import SettingsWidget from "../settings_widget/settings_widget";
 import device_preview_styles from "./device_preview.module.css"; 
 
 type device_preview_props = {
-    id: any;
+    uuid: any;
     // label
     // brightness
     // active
@@ -24,7 +24,7 @@ export default function DevicePreview(props: device_preview_props) {
 
     const click_handler = () => {
 
-        navigate(`/devices/${props.id}`)
+        navigate(`/devices/${props.uuid}`)
         
     }
 
