@@ -5,7 +5,7 @@
             "configuration": {
                 "label": "GP1",
                 "brightness": 100,
-                "active": 1,
+                "active": 0,
                 "mode": 0,
                 "r1": 255,
                 "g1": 0,

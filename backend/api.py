@@ -44,6 +44,8 @@
 
 from flask import Flask, jsonify, request
 from flask_mqtt import Mqtt
+from flask_socketio import SocketIO
+import eventlet
 
 import json
 from enum import Enum
@@ -87,6 +89,15 @@ class modes:
     alternate = 1
 
 glowpuck_uuids = []
+
+eventlet.monkey_patch()
+api = Flask(__name__)
+api.config['MQTT_BROKER_URL'] =  MQTT_BROKER_HOST
+api.config['MQTT_BROKER_PORT'] = MQTT_BROKER_PORT
+api.config['MQTT_TLS_ENABLED'] = False
+api.config['SECRET_KEY'] = 'secret!'
+socketio = SocketIO(api)
+mqtt = Mqtt(app = api)
 
 def construct_protocol_message(
     message_type: protocol_message_type,
@@ -323,7 +334,7 @@ def publish_configuration_update(
     )
 
     topic = f'{ESP32C3_DEVICE_CONFIG_TOPIC}/{uuid}'
-    #mqtt.publish(topic, config_protocol_message)
+    mqtt.publish(topic, config_protocol_message)
 
     return config_protocol_message
 def publish_status_request(uuid: str):
@@ -346,11 +357,9 @@ def publish_status_request(uuid: str):
     )
 
     topic = f'{ESP32C3_DEVICE_STATUS_TOPIC}/{uuid}'
-    #mqtt.publish(topic, status_protocol_message)
+    mqtt.publish(topic, status_protocol_message)
 
     return status_protocol_message
-
-
 
 def load_config(file: str):
 
@@ -398,33 +407,33 @@ def load_config(file: str):
             car_clear = car_clear
         )
 
-    return device_count 
+    return glowpucks_config 
 
-load_config(CONFIG_FILE)
+@api.route('/default_config', methods=['GET'])
+def deliver_default_config():
 
-api = Flask(__name__)
-api.config['MQTT_BROKER_URL'] =  MQTT_BROKER_HOST
-api.config['MQTT_BROKER_PORT'] = MQTT_BROKER_PORT
-api.config['MQTT_TLS_ENABLED'] = False
-mqtt = Mqtt(app = api)
+    glowpucks_config_file = open(CONFIG_FILE)
+    glowpucks_config = jsonify(glowpucks_config_file)
 
-@api.route('/{ESP32C3_DEVICE_CONFIG_TOPIC}/{uuid}', methods=['GET'])
-def update_esp32c3_device_config(uuid):
-    
-    device_config = request.get_json()
-    label = device_config.get('label')
-    brightness = device_config.get('brightness')
-    active = device_config.get('active')
-    mode = device_config.get('mode')
-    r1 = device_config.get('r1')
-    g1 = device_config.get('g1')
-    b1 = device_config.get('b1')
-    r2 = device_config.get('r2')
-    g2 = device_config.get('g2')
-    b2 = device_config.get('b2')
-    group_enable = device_config.get('group_enable')
-    group_target = device_config.get('group_target')
-    car_clear = device_config.get('car_clear')
+    return glowpucks_config
+
+@socketio.on('config_update')
+def update_esp32c3_device_config(uuid, config):
+
+    device_config = json.loads(config)
+    label = device_config['label']
+    brightness = device_config['brightness']
+    active = device_config['active']
+    mode = device_config['mode']
+    r1 = device_config['r1']
+    g1 = device_config['g1']
+    b1 = device_config['b1']
+    r2 = device_config['r2']
+    g2 = device_config['g2']
+    b2 = device_config['b2']
+    group_enable = device_config['group_enable']
+    group_target = device_config['group_target']
+    car_clear = device_config['car_clear']
 
     publish_configuration_update(
         uuid = uuid,
@@ -443,17 +452,17 @@ def update_esp32c3_device_config(uuid):
         car_clear = car_clear,
     )
 
-    return 201
+    return jsonify(201)
 
-@api.route('/{ESP32C3_DEVICE_STATUS_TOPIC}/{uuid}', methods=['GET'])
+@socketio.on('status_request')
 def request_esp32c3_device_status(uuid):
     
     publish_status_request(uuid)
 
-    return 201
+    return 
 
 @mqtt.on_connect()
-def initialize_mqtt():
+def initialize_mqtt(self, client, userdata, message):
 
     for uuid in glowpuck_uuids:
 
@@ -462,5 +471,18 @@ def initialize_mqtt():
         
 @mqtt.on_message()
 def handle_messages(client, userdata, message):
-    print('Received message on topic {}: {}'
-          .format(message.topic, message.payload.decode()))
+
+    topic = message.topic
+    payload = message.payload.decode()
+
+    uuid = str(topic).split(BACKEND_DEVICE_STATUS_TOPIC)[1].replace("/","")
+
+    status_message = parse_status_message(
+        message = str(payload)
+    )
+
+    socketio.emit("status_request", uuid, status_message)
+
+
+if __name__ == '__main__':
+    socketio.run(api)
