@@ -12,7 +12,7 @@ export default function Home() {
                     Connected Devices
                 </h2>
                 <div className={home_page_styles.devices_container}>
-                    <DevicePreview uuid={0}/>
+                    <DevicePreview battery_widget_disable uuid={0}/>
 
 
                 </div>

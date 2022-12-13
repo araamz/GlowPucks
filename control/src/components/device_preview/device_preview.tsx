@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
 import BatteryWidget from "../battery_widget/battery_widget";
 import Graphic from "../graphic/graphic";
@@ -7,32 +8,50 @@ import device_preview_styles from "./device_preview.module.css";
 
 type device_preview_props = {
     uuid: any;
-    // label
-    // brightness
-    // active
-    // color
-    battery_widget_disable?: boolean;
     light_active_widget_disable?: boolean;
     settings_widget_disable?: boolean;
 }
 
-// Will grab from API for battery_level, light_active, and label - Only ID will be required
+// Will grab from API (socketio) for light_active, and label - Only UUID will be required
+// Will grab from API (socketio) for r1, g1, b1 
 
 export default function DevicePreview(props: device_preview_props) {
 
     const navigate = useNavigate()
 
-    const click_handler = () => {
+    const [r1, set_r1] = useState<Number>(0)
+    const [g1, set_g1] = useState<Number>(0)
+    const [b1, set_b1] = useState<Number>(0)
 
+    const click_handler = () => {
+  
         navigate(`/devices/${props.uuid}`)
         
     }
 
+
     const test_object = {
-        label: "Puck 1",
-        battery_level: 23,
-        light_active: true
+        "label": "GP1",
+        "brightness": 100,
+        "active": 0,
+        "mode": 0,
+        "r1": 255,
+        "g1": 0,
+        "b1": 0,
+        "r2": -1,
+        "g2": -1,
+        "b2": -1,
+        "group_enable": 0,
+        "group_target": "NULL",
+        "car_clear": 0,
+        "car_count": -1
     }
+
+    useEffect(() => {
+
+    }, [])
+
+    
 
     return (
         <div className={device_preview_styles.device_preview}>
@@ -43,10 +62,9 @@ export default function DevicePreview(props: device_preview_props) {
                     </p>
                 </div>
                 <div className={device_preview_styles.graphic_container}>
-                    <Graphic color="#9CCC65" active={false} />
+                    <Graphic color="rgba(0,255,0,100)" active={false} />
                 </div>
                 <div className={device_preview_styles.widgets_container}>
-                    { !props.battery_widget_disable ? <BatteryWidget level={test_object.battery_level} /> : null }
                     { !props.light_active_widget_disable ? <LightActiveWidget active={test_object.light_active}/> : null }
                     { !props.settings_widget_disable ? <SettingsWidget onClick={click_handler} className={device_preview_styles.settings_widget} /> : null }
                 </div>

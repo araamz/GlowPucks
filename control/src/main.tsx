@@ -13,6 +13,7 @@ import {
 import Device from './pages/device/device';
 import Group from './pages/groups/groups';
 import Home from './pages/home/home';
+import DefaultConfig from './pages/default_config/default_config';
 
 const router = createBrowserRouter([
   {
@@ -30,6 +31,10 @@ const router = createBrowserRouter([
       {
         path: "groups/:group_uuid",
         element: <Group />
+      },
+      {
+        path: "/default_config",
+        element: <DefaultConfig />
       }
     ]
   }
