@@ -6,6 +6,7 @@ import ButtonWidget from "../../components/button_widget/button_widget";
 import Graphic from "../../components/graphic/graphic";
 import { useEffect, useState } from "react";
 import Widget from "../../components/widget/widget";
+import io, { Socket } from 'socket.io-client';
 
 enum modes {
     still = 0,
@@ -27,23 +28,25 @@ const colors = [
     { color: "#eeeeee" }
 ]
 
+const socket = io("http://127.0.0.1:5000");
+
 export default function Device() {
 
     let { device_uuid } = useParams();
 
-    const [label, set_label] = useState<String>()
-    const [brightness, set_brightness] = useState<Number>()
-    const [active, set_active] = useState<Number>()
-    const [mode, set_mode] = useState<modes>()
-    const [r1, set_r1] = useState<Number>()
-    const [g1, set_g1] = useState<Number>()
-    const [b1, set_b1] = useState<Number>()
+    const [label, set_label] = useState<String>("Glowpuck")
+    const [brightness, set_brightness] = useState<Number>(100)
+    const [active, set_active] = useState<Number>(1)
+    const [mode, set_mode] = useState<modes>(0)
+    const [r1, set_r1] = useState<Number>(100)
+    const [g1, set_g1] = useState<Number>(0)
+    const [b1, set_b1] = useState<Number>(0)
     const [r2, set_r2] = useState<Number>()
     const [g2, set_g2] = useState<Number>()
     const [b2, set_b2] = useState<Number>()
-    const [group_enable, set_group_enable] = useState<Number>()
-    const [group_target, set_group_target] = useState<String>()
-    const [car_count, set_car_count] = useState<Number>()
+    const [group_enable, set_group_enable] = useState<Number>(0)
+    const [group_target, set_group_target] = useState<String>("NULL")
+    const [car_count, set_car_count] = useState<Number>(0)
 
     const create_protocol_message = (type: protocol_message_type, car_clear: Number) => {
 
@@ -55,11 +58,11 @@ export default function Device() {
 
         if (type == protocol_message_type.config) {
 
-            let protocol_message = `${protocol_message_type.config}\t${label}\t${brightness}\t${active}\t${mode}\t${r1}\t${g1}\t${b1}\t${r2}\t${g2}\t${b2}\t${group_enable}\t${group_target}\t${car_clear}\t${-1}`;
+            protocol_message = `${protocol_message_type.config}\t${label}\t${brightness}\t${active}\t${mode}\t${r1}\t${g1}\t${b1}\t${r2}\t${g2}\t${b2}\t${group_enable}\t${group_target}\t${car_clear}\t${-1}`;
 
         } else if (type == protocol_message_type.status) {
 
-            let protocol_message = `${protocol_message_type.status}\t${label}\t${brightness}\t${active}\t${mode}\t${r1}\t${g1}\t${b1}\t${r2}\t${g2}\t${b2}\t${group_enable}\t${group_target}\t${car_clear}\t${-1}`;
+            protocol_message = `${protocol_message_type.status}\t${label}\t${brightness}\t${active}\t${mode}\t${r1}\t${g1}\t${b1}\t${r2}\t${g2}\t${b2}\t${group_enable}\t${group_target}\t${car_clear}\t${-1}`;
 
         }
 
@@ -69,14 +72,52 @@ export default function Device() {
 
     const parse_protocol_status_message = (message: String) => {
 
+        let tokens = message.split("\t")
 
+        let parsed_type = Number(tokens[0])
+        let parsed_label = tokens[1]
+        let parsed_brightness = Number(tokens[2])
+        let parsed_active = Number(tokens[3])
+        let parsed_mode = Number(tokens[4])
+        let parsed_r1 = Number(tokens[5])
+        let parsed_g1 = Number(tokens[6])
+        let parsed_b1 = Number(tokens[7])
+        let parsed_r2 = Number(tokens[8])
+        let parsed_g2 = Number(tokens[9])
+        let parsed_b2 = Number(tokens[10])
+        let parsed_group_enable = Number(tokens[11])
+        let parsed_group_target = tokens[12]
+        let parsed_car_count = Number(tokens[14])
+
+        if (parsed_type == protocol_message_type.status) {
+            return -1
+        }
+
+        set_label(parsed_label)
+        set_brightness(parsed_brightness)
+        set_active(parsed_active)
+        set_mode(parsed_mode)
+        set_r1(parsed_r1)
+        set_g1(parsed_g1)
+        set_b1(parsed_b1)
+        set_r2(parsed_r2)
+        set_g2(parsed_g2)
+        set_b2(parsed_b2)
+        set_group_enable(parsed_group_enable)
+        set_group_target(parsed_group_target)
+        set_car_count(parsed_car_count)
 
     }   
 
     const request_status_message = () => {
 
+
     }
-    const transmit_config_message = () => {
+    const transmit_config_message = (car_clear_enable: Number) => {
+
+        let protocol_message = create_protocol_message(protocol_message_type.config, car_clear_enable)
+
+        socket.emit("config_update", (device_uuid, protocol_message))
 
     }
 
@@ -102,6 +143,12 @@ export default function Device() {
         console.log(device_uuid)
     })
 
+    useEffect(() => {
+
+        let message = create_protocol_message(protocol_message_type.config, 0)
+        parse_protocol_status_message(message)
+
+    })
 
     return (
 
