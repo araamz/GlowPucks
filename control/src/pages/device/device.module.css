@@ -6,6 +6,7 @@
     }
     .device_page h5 {
         color: gray;
+        margin-bottom: 10px;
     }
 
     .device_attributes {
@@ -30,19 +31,23 @@
         border: solid 2px rgb(234, 234, 234);
         border-radius: 4px;
     }
+    .attribute_color, .attribute_color_inactive {
+        margin-top: 3px;
+        width: 12px;
+        height: 12px;
+        border-radius: 5px;
+        border: 2px gray solid;
+    }
+    .attribute_color_inactive {
+        background: none;
+        border-style: dotted;
+    }
     .graphic_attribute {
         border: none !important;
         grid-column-start: 1;
         grid-column-end: 3;
         display: flex;
         place-content: center;
-
-    }
-    .lower_text {
-        font-size: 0.4rem;
-        grid-column-start: 1;
-        grid-column-end: 3;
-        text-align: center;
     }
     .attribute_value {
         font-size: 0.8rem;
@@ -58,12 +63,85 @@
 
     .device_configuration {
     }
-
-    .graphic {
-        
+    .device_configuration_options {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
     }
-    .color_box {
-        width: 30px;
-        height: 30px;
+    .label_options {
+        resize: none;
+        width: 500px;
+        font-size: 1rem;
+        padding: 10px;
+        border: none;
+        box-shadow: 0 3px 5px 1px lightgray;
+    }
+
+    .device_configuration_options > div > p {
+        font-size: 0.8rem;
+        font-weight: 700;
+        color: gray;
+        margin-bottom: 5px;
+    }
+    .device_configuration_options > div > div {
+        display: flex;
+        gap: 12px;
+    }
+    .device_configuration_options > div > div > button {
+        padding: 0;
+        text-decoration: none;
+        padding: 5px 10px;
+        border-radius: 4px;
+        font-size: 0.8rem;
+        border: 2px solid rgb(182, 182, 182); 
+        background: none; 
+        color: rgb(182, 182, 182);
+    }
+    .device_configuration_options > div > div > button:hover {
+        color: white !important;
+        border-color: black;
+        background: black;
+        transition: 0.2s;
+        box-shadow: 0 1px 10px 1px gray;
+    }
+    .device_configuration_options > div > div > .option_selected {
+        color: white !important;
+        border-color: black !important;
+        background: black !important;
+        font-weight: 700 !important;
+    }
+    .color_options {
+        gap: 10px !important;
+    }
+    .color_options > button {
+        width: 25px !important;
+        height: 25px !important;
+        padding: 0 !important;
+    }
+    .color_options > button:hover {
+        box-shadow: none !important;
+        border-color: black;
+    }
+    .color_options > .color_selected {
+        border-color: black !important;
+    }
+    .red_color_option {
+        background: rgb(255, 0, 0) !important;
+    }
+    .orange_color_option {
+        background: rgb(255, 190, 0) !important;
+    }
+    .yellow_color_option {
+        background: rgb(255, 255, 0) !important;
+    }
+    .blue_color_option {
+        background: rgb(0, 0, 255) !important;
+    }
+    .white_color_option {
+        background: rgb(255, 255, 255) !important;
+    }
+    .mode_options {
+    }
+    .device_options {
     }
 }
