@@ -55,18 +55,20 @@ export default function DevicePreview(props: device_preview_props) {
     useEffect(() => {
 
         socket.on('status_request_response', (status_message) => {
-            set_label(status_message.label)
-            set_active(status_message.active)
-            set_r1(status_message.r1)
-            set_g1(status_message.g1)
-            set_b1(status_message.b1)
+            if (status_message.uuid == props.uuid) {
+                set_label(status_message.label)
+                set_active(status_message.active)
+                set_r1(status_message.r1)
+                set_g1(status_message.g1)
+                set_b1(status_message.b1)
+            }
         })
 
         return () => {
             socket.off('status_request_response')
         }
 
-    }, [label, set_label])
+    }, [label, set_active, set_r1, set_g1, set_b1])
 
     useEffect(() => {
         const interval = setInterval(() => {

@@ -243,25 +243,38 @@ def parse_status_message(message: str, uuid: str):
 
             parsed_r1 = message_values[message_index]
 
+            if (parsed_r1 == -1):
+                parsed_r1 = 0
+
         if (message_index == G1_INDEX):
 
             parsed_g1 = message_values[message_index]
+            if (parsed_g1 == -1):
+                parsed_g1 = 0
 
         if (message_index == B1_INDEX):
 
             parsed_b1 = message_values[message_index]
+            if (parsed_b1 == -1):
+                parsed_b1 = 0
 
         if (message_index == R2_INDEX):
 
             parsed_r2 = message_values[message_index]
+            if (parsed_r2 == -1):
+                parsed_r2 = 0
 
         if (message_index == G2_INDEX):
 
             parsed_g2 = message_values[message_index]
+            if (parsed_g2 == -1):
+                parsed_g2 = 0
 
         if (message_index == B2_INDEX):
 
             parsed_b2 = message_values[message_index]
+            if (parsed_b2 == -1):
+                parsed_b2 = 0
 
         if (message_index == GROUP_ENABLE_INDEX):
 
@@ -434,9 +447,10 @@ def send_all_uuids():
     return jsonify(glowpuck_uuids)
 
 @socketio.on('config_update')
-def update_esp32c3_device_config(uuid, config):
+def update_esp32c3_device_config(message):
 
-    device_config = json.loads(config)
+    device_config = json.loads(message)
+    uuid = device_config['uuid']
     label = device_config['label']
     brightness = device_config['brightness']
     active = device_config['active']

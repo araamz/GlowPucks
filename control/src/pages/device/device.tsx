@@ -23,7 +23,10 @@ enum protocol_message_type {
     status = 1
 }
 
-//const socket = io("http://127.0.0.1:5000");
+const socket_url = "http://127.0.0.1:5000"
+const socket = io(socket_url, {
+    withCredentials: false
+})
 
 const inital_config = {
     "label": "GP1",
@@ -67,21 +70,54 @@ export default function Device() {
             car_clear = 0;
         }
 
-        let protocol_message;
-
-        if (type == protocol_message_type.config) {
-
-            protocol_message = `${protocol_message_type.config}\t${label}\t${brightness}\t${active}\t${mode}\t${r1}\t${g1}\t${b1}\t${r2}\t${g2}\t${b2}\t${group_enable}\t${group_target}\t${car_clear}\t${-1}`;
-
-        } else if (type == protocol_message_type.status) {
-
-            protocol_message = `${protocol_message_type.status}\t${label}\t${brightness}\t${active}\t${mode}\t${r1}\t${g1}\t${b1}\t${r2}\t${g2}\t${b2}\t${group_enable}\t${group_target}\t${car_clear}\t${-1}`;
-
+        let protocol_message = {
+            "uuid": device_uuid,
+            "label": label,
+            "brightness": brightness,
+            "active": active,
+            "mode": mode,
+            "r1": r1,
+            "g1": g1,
+            "b1": b1,
+            "r2": r2,
+            "g2": g2,
+            "b2": b2,
+            "group_enable": group_enable,
+            "group_target": "NULL",
+            "car_clear": car_clear
         }
 
-        return protocol_message
+        return JSON.stringify(protocol_message)
 
     }
+
+    const request_status = () => {
+        console.log("Requesting")
+        socket.emit("status_request", device_uuid)
+    }
+
+    useEffect(() => {
+        const interval = setInterval(() => {
+            request_status()
+        }, 3000)
+
+        return () => clearInterval(interval)
+    }, [])
+
+    useEffect(() => {
+
+        socket.on('status_request_response', (status_message) => {
+            if (status_message.uuid === device_uuid) {
+                console.log(status_message)
+                set_current_config(status_message)
+            }
+        })
+
+        return () => {
+            socket.off('status_request_response')
+        }
+
+    }, [label, set_active, set_r1, set_g1, set_b1])
 
     useEffect(() => {
         if (mode !== 2) {
@@ -190,10 +226,13 @@ export default function Device() {
     }
 
     const clear_car_count_click = () => {
-        
+        let message = create_protocol_message(protocol_message_type.status, 1)
+        socket.emit("config_update", message)
     }
     const update_config_click = () => {
-
+        let message = create_protocol_message(protocol_message_type.status, 0)
+        console.log(message)
+        socket.emit("config_update", message)
     }
 
     return (
@@ -203,7 +242,7 @@ export default function Device() {
                 <h5>Device Information</h5>
                 <div className={device_page_styles.device_attributes}>
                     <div className={device_page_styles.graphic_attribute}>
-                        <Graphic active={active} color={"red"} />
+                        <Graphic active={current_config.active} color={"red"} />
                     </div>
                     <div className={device_page_styles.label_attribute}>
                         <p>
@@ -256,11 +295,11 @@ export default function Device() {
                             Primary Color
                         </p>
                         <div>
-                            {((current_config.r1 === 255) && (current_config.g1 === 0) && (current_config.b1 === 0)) ? <div className={`${device_page_styles.attribute_color} ${device_page_styles.red_color_option}`} /> : undefined } 
-                            {((current_config.r1 === 255) && (current_config.g1 === 190) && (current_config.b1 === 0)) ? <div className={`${device_page_styles.attribute_color} ${device_page_styles.orange_color_option}`} /> : undefined } 
-                            {((current_config.r1 === 255) && (current_config.g1 === 255) && (current_config.b1 === 0)) ? <div className={`${device_page_styles.attribute_color} ${device_page_styles.yellow_color_option}`} /> : undefined } 
-                            {((current_config.r1 === 0) && (current_config.g1 === 0) && (current_config.b1 === 255)) ? <div className={`${device_page_styles.attribute_color} ${device_page_styles.blue_color_option}`} /> : undefined } 
-                            {((current_config.r1 === 255) && (current_config.g1 === 255) && (current_config.b1 === 255)) ? <div className={`${device_page_styles.attribute_color} ${device_page_styles.white_color_option}`} /> : undefined } 
+                            {((Number(current_config.r1) === 255) && (Number(current_config.g1) === 0) && (Number(current_config.b1) === 0)) ? <div className={`${device_page_styles.attribute_color} ${device_page_styles.red_color_option}`} /> : undefined } 
+                            {((Number(current_config.r1) === 255) && (Number(current_config.g1) === 190) && (Number(current_config.b1) === 0)) ? <div className={`${device_page_styles.attribute_color} ${device_page_styles.orange_color_option}`} /> : undefined } 
+                            {((Number(current_config.r1) === 255) && (Number(current_config.g1) === 255) && (Number(current_config.b1) === 0)) ? <div className={`${device_page_styles.attribute_color} ${device_page_styles.yellow_color_option}`} /> : undefined } 
+                            {((Number(current_config.r1) === 0) && (Number(current_config.g1) === 0) && (Number(current_config.b1) === 255)) ? <div className={`${device_page_styles.attribute_color} ${device_page_styles.blue_color_option}`} /> : undefined } 
+                            {((Number(current_config.r1) === 255) && (Number(current_config.g1) === 255) && (Number(current_config.b1) === 255)) ? <div className={`${device_page_styles.attribute_color} ${device_page_styles.white_color_option}`} /> : undefined } 
                         </div>
                     </div>
                     <div className={device_page_styles.seccondary_color_attribute}>
@@ -270,11 +309,11 @@ export default function Device() {
                         <div>
                             { current_config.mode == modes.alternate ? 
                                 <>
-                                    {((current_config.r2 === 255) && (current_config.g2 === 0) && (current_config.b2 === 0)) ? <div className={`${device_page_styles.attribute_color} ${device_page_styles.red_color_option}`} /> : undefined } 
-                                    {((current_config.r2 === 255) && (current_config.g2 === 190) && (current_config.b2 === 0)) ? <div className={`${device_page_styles.attribute_color} ${device_page_styles.orange_color_option}`} /> : undefined } 
-                                    {((current_config.r2 === 255) && (current_config.g2 === 255) && (current_config.b2 === 0)) ? <div className={`${device_page_styles.attribute_color} ${device_page_styles.yellow_color_option}`} /> : undefined } 
-                                    {((current_config.r2 === 0) && (current_config.g2 === 0) && (current_config.b2 === 255)) ? <div className={`${device_page_styles.attribute_color} ${device_page_styles.blue_color_option}`} /> : undefined } 
-                                    {((current_config.r2 === 255) && (current_config.g2 === 255) && (current_config.b2 === 255)) ? <div className={`${device_page_styles.attribute_color} ${device_page_styles.white_color_option}`} /> : undefined } 
+                                    {((Number(current_config.r2) === 255) && (Number(current_config.g2) === 0) && (Number(current_config.b2) === 0)) ? <div className={`${device_page_styles.attribute_color} ${device_page_styles.red_color_option}`} /> : undefined } 
+                                    {((Number(current_config.r2) === 255) && (Number(current_config.g2) === 190) && (Number(current_config.b2) === 0)) ? <div className={`${device_page_styles.attribute_color} ${device_page_styles.orange_color_option}`} /> : undefined } 
+                                    {((Number(current_config.r2) === 255) && (Number(current_config.g2) === 255) && (Number(current_config.b2) === 0)) ? <div className={`${device_page_styles.attribute_color} ${device_page_styles.yellow_color_option}`} /> : undefined } 
+                                    {((Number(current_config.r2) === 0) && (Number(current_config.g2) === 0) && (Number(current_config.b2) === 255)) ? <div className={`${device_page_styles.attribute_color} ${device_page_styles.blue_color_option}`} /> : undefined } 
+                                    {((Number(current_config.r2) === 255) && (Number(current_config.g2) === 255) && (Number(current_config.b2) === 255)) ? <div className={`${device_page_styles.attribute_color} ${device_page_styles.white_color_option}`} /> : undefined } 
                                 </>
                             : <div className={`${device_page_styles.attribute_color} ${device_page_styles.attribute_color_inactive}`} /> }
                         </div>
@@ -366,8 +405,8 @@ export default function Device() {
                             Configuration Options
                         </p>
                         <div>
-                            <button>Clear Car Count</button>
-                            <button>Update Configuration</button>
+                            <button onClick={clear_car_count_click}>Clear Car Count</button>
+                            <button onClick={update_config_click}>Update Configuration</button>
                         </div>
                     </div>
                 </div>
