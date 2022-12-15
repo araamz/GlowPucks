@@ -1,0 +1,33 @@
+@media screen and (min-width: 600px) {
+    .default_config {
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+    }
+    .code_container {
+        background: white;
+        padding: 10px;
+        border-radius: 4px;
+    }
+    .code {
+        overflow: scroll;
+        background: none;
+    }
+    .refresh_button {
+        padding: 0;
+        text-decoration: none;
+        padding: 5px 10px;
+        border-radius: 4px;
+        font-size: 0.8rem;
+        border: 2px solid black; 
+        width: min-content;
+    }
+
+    .refresh_button:hover {
+        color: white !important;
+        border-color: black;
+        background: black;
+        transition: 0.2s;
+        box-shadow: 0 1px 10px 1px gray;
+      }
+}

@@ -2,7 +2,7 @@ import Widget from "../widget/widget";
 import light_active_widget_styles from "./light_active_widget.module.css"; 
  
 type light_active_widget_props = {
-    active: boolean
+    active: Number
 }
 
 export default function LightActiveWidget(props: light_active_widget_props) {
@@ -12,7 +12,7 @@ export default function LightActiveWidget(props: light_active_widget_props) {
         let enabled_text = "ACTIVE"
         let disabled_text = "INACTIVE"
         
-        return props.active ? enabled_text : disabled_text
+        return props.active == 1 ? enabled_text : disabled_text
     }
 
     const show_light_active_icon = () => {
@@ -20,7 +20,7 @@ export default function LightActiveWidget(props: light_active_widget_props) {
         let enabled_class = light_active_widget_styles.active
         let disabled_class = light_active_widget_styles.inactive
         
-        return props.active ? enabled_class : disabled_class
+        return props.active == 1 ? enabled_class : disabled_class
 
     }
 

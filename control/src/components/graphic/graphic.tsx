@@ -2,7 +2,7 @@ import { ReactNode } from "react";
 import graphic_styles from "./graphic.module.css"; 
 
 type graphic_props = {
-    active: boolean;
+    active: Number;
     color: string;
     className?: string;
 }
@@ -16,12 +16,12 @@ export default function Graphic(props: graphic_props) {
             boxShadow: `0 0 15px 1px ${props.color}`
         }
         let disabled_class = {
-            backgroundColor: undefined,
+            backgroundColor: "rgba(0,0,0,0)",
             border: `2px dotted ${props.color}`,
             boxShadow: `0 0 15px 2px ${props.color}`
         }
         
-        return props.active ? enabled_class : disabled_class
+        return props.active == 1 ? enabled_class : disabled_class
 
     }
 

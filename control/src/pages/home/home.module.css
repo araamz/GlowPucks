@@ -3,10 +3,26 @@
     .home {
         display: flex;
         flex-direction: column;
-        gap: 30px;
     }
     .home h2 {
         margin-bottom: 30px;
+    }
+    .connected_devices_header {
+        display: flex;
+        gap: 10px;
+        align-items: baseline;
+    }
+    .refresh_button {
+        height: min-content;
+        width: min-content;
+    }
+    .refresh_icon {
+        font-size: 1.2rem;
+        font-variation-settings:
+        'FILL' 0,
+        'wght' 400,
+        'GRAD' 0,
+        'opsz' 100
     }
     .devices_container {
         display: grid;

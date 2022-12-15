@@ -46,6 +46,7 @@ from flask import Flask, jsonify, request
 from flask_mqtt import Mqtt
 from flask_socketio import SocketIO
 import eventlet
+from flask_cors import CORS
 
 import json
 from enum import Enum
@@ -88,16 +89,17 @@ class modes:
     flash = 1 
     alternate = 1
 
-glowpuck_uuids = []
+glowpuck_uuids = list()
 
 eventlet.monkey_patch()
 api = Flask(__name__)
+CORS(api)
 api.config['MQTT_BROKER_URL'] =  MQTT_BROKER_HOST
 api.config['MQTT_BROKER_PORT'] = MQTT_BROKER_PORT
 api.config['MQTT_TLS_ENABLED'] = False
 api.config['SECRET_KEY'] = 'secret!'
-socketio = SocketIO(api)
-mqtt = Mqtt(app = api)
+mqtt = Mqtt(api)
+socketio = SocketIO(api, cors_allowed_origins=['http://127.0.0.1:5173','http://localhost:5173'])
 
 def construct_protocol_message(
     message_type: protocol_message_type,
@@ -195,7 +197,7 @@ def construct_protocol_message(
             protocol_message = protocol_message + segment
 
     return protocol_message
-def parse_status_message(message: str):
+def parse_status_message(message: str, uuid: str):
 
     message_values = message.split(MESSAGE_DELIMITER)
 
@@ -278,6 +280,7 @@ def parse_status_message(message: str):
             parsed_car_count = message_values[message_index]
 
     parsed_status_message = {
+        "uuid": uuid,
         "type": parsed_type,
         "label": parsed_label,
         "brightness": parsed_brightness,
@@ -361,7 +364,7 @@ def publish_status_request(uuid: str):
 
     return status_protocol_message
 
-def load_config(file: str):
+def load_config(file: str, refresh_enable = 0):
 
     glowpucks_config_file = open(file)
     glowpucks_config = json.load(glowpucks_config_file)
@@ -389,7 +392,8 @@ def load_config(file: str):
         group_target = device['configuration']['group_target']
         car_clear = device['configuration']['car_clear']
 
-        glowpuck_uuids.append(uuid)
+        if (refresh_enable == 0):
+            glowpuck_uuids.append(uuid)
         publish_configuration_update(
             uuid = uuid,
             label = label,
@@ -407,15 +411,27 @@ def load_config(file: str):
             car_clear = car_clear
         )
 
-    return glowpucks_config 
+    return device_count 
+
+@api.route('/refresh_default_config', methods=['GET'])
+def refresh_default_config():
+
+    load_config(CONFIG_FILE, 1)
+
+    return jsonify(201)
 
 @api.route('/default_config', methods=['GET'])
-def deliver_default_config():
+def send_default_config():
 
     glowpucks_config_file = open(CONFIG_FILE)
-    glowpucks_config = jsonify(glowpucks_config_file)
+    glowpucks_config_json = json.load(glowpucks_config_file)
+    glowpucks_config = jsonify(glowpucks_config_json)
 
     return glowpucks_config
+
+@api.route('/device/uuids', methods=['GET'])
+def send_all_uuids():
+    return jsonify(glowpuck_uuids)
 
 @socketio.on('config_update')
 def update_esp32c3_device_config(uuid, config):
@@ -452,7 +468,7 @@ def update_esp32c3_device_config(uuid, config):
         car_clear = car_clear,
     )
 
-    return jsonify(201)
+    return
 
 @socketio.on('status_request')
 def request_esp32c3_device_status(uuid):
@@ -461,6 +477,7 @@ def request_esp32c3_device_status(uuid):
 
     return 
 
+
 @mqtt.on_connect()
 def initialize_mqtt(self, client, userdata, message):
 
@@ -468,7 +485,7 @@ def initialize_mqtt(self, client, userdata, message):
 
         topic = f'{BACKEND_DEVICE_STATUS_TOPIC}/{uuid}'
         mqtt.subscribe(topic)
-        
+
 @mqtt.on_message()
 def handle_messages(client, userdata, message):
 
@@ -476,13 +493,16 @@ def handle_messages(client, userdata, message):
     payload = message.payload.decode()
 
     uuid = str(topic).split(BACKEND_DEVICE_STATUS_TOPIC)[1].replace("/","")
-
     status_message = parse_status_message(
-        message = str(payload)
+        message = str(payload), uuid = uuid
     )
 
-    socketio.emit("status_request", uuid, status_message)
+    socketio.emit("status_request_response", status_message)
 
 
 if __name__ == '__main__':
-    socketio.run(api)
+
+    devices_loaded = load_config(CONFIG_FILE)
+    print(f'Devices Loaded Count: {devices_loaded}')
+    print(f'Device UUIDs Count: {len(glowpuck_uuids)}')
+    socketio.run(api, port=5000, use_reloader=False, debug=True)
